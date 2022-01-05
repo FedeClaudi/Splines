@@ -53,12 +53,12 @@ module Fit
         curve = PiecewiseLinear(knots_init; closed=closed)
 
         # optimize knots position
-        @info "Optimizing knots placement"
+        @debug "Optimizing knots placement"
         𝐿(k) = cost(k, data, labels, curve; α=α, β=β, closed=closed)
         knots_optim = gm.sort_points(optimize(𝐿, knots_init).minimizer, selection_method=:smallest)
 
         # create curve
-        @info "Fitting Piecewise linear to knots"
+        @debug "Fitting Piecewise linear to knots"
         curve = PiecewiseLinear(knots_optim; closed=closed)
 
         return knots_init, knots_optim, curve

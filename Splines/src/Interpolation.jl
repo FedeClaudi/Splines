@@ -27,7 +27,7 @@ module Interpolation
         N = size(points, 2)
         n_points = closed ? N : N - 1
         ηₜ = η * n_points
-        curve = zeros(2, ηₜ)
+        curve = zeros(size(points, 1), ηₜ)
         return PiecewiseLinear!(curve, points; η=η, closed=closed)
     end
 
@@ -43,13 +43,11 @@ module Interpolation
         N = size(points, 2)
         n_points = closed ? N : N - 1
         P = range(0, 1, length=η)  # for interpolation
-
         # @info "PiecewiseLinear! with curve $(size(curve)), points $(size(points)); η=$η, closed=$closed | N=$N"
         
         # create curve by linear interpolation of each segment
         for n in range(1, length=n_points)
             if n == N
-                @info "ops"
                 k₀, k₁ = points[:, end], points[:, 1]
             else
                 k₀, k₁ = points[:, n], points[:, n+1]
