@@ -1,10 +1,14 @@
 module Splines
     include("Geometry.jl")
+    include("Data.jl")
     include("Interpolation.jl")
+    include("Fit.jl")
 
     import .Geometry: Point, Points, distances, curve_length
-    import .Interpolation: PiecewiseLinear, lerp
+    import .Interpolation: PiecewiseLinear, PiecewiseLinear!, lerp
+    import .TestData
+    import .Fit
 
-    export Point, Points, distances, curve_length, PiecewiseLinear, lerp
+    export Point, Points, distances, curve_length, PiecewiseLinear, PiecewiseLinear!, lerp
 
 end 

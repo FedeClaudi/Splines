@@ -2,3 +2,7 @@ name = "Splines"
 uuid = "34ec1c54-dc24-44c2-9cb7-3a58ea01e2d3"
 authors = ["FedeClaudi <federicoclaudi@protonmail.com>"]
 version = "0.1.0"
+
+[deps]
+Clustering = "aaaa29a8-35af-508c-8bc3-b662a17a0fe5"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
