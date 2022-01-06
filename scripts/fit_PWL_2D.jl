@@ -1,32 +1,38 @@
 using Plots
-using Revise
-Revise.revise()
+
 
 # ? activate Splines
 import Pkg
 Pkg.activate("Splines")
 
+using Revise
+Revise.revise()
 
 import Splines
 import Splines.Fit: fitPWL as fit
 
+"""
+    Fit a piecewise linear curve to a circle in the 2D plane
+"""
+
 gr()
 
 # initialize raw data points
-data = Splines.TestData.circle3D(σ=.1)
+data = Splines.TestData.sine(δ=0.001)
 
 # fit
-knots_init, knots_optim, curve = fit(data; η=20, closed=true, α=1.0)
+knots_init, knots_optim, curve = fit(data; η=8, closed=false, α=10.0, β=1.0)
+@info "Timed fitting"
+@time fit(data; η=12, closed=false)
+
+# plot stuff
+plt = scatter(data[1, :], data[2, :], label="data", color="white")
+plot!(curve[1, :], curve[2, :], label="curve", color="green", lw=4)
+
+scatter!(knots_optim[1, :], knots_optim[2, :], label="optim. knoblackts", color="red", ms=10)
+scatter!(knots_init[1, :], knots_init[2, :], label="init. knots", color="black", ms=7)
+scatter!([knots_init[1, 1]], [knots_init[2, 1]], label=nothing, color="blue", ms=5)
 
 
-# # plot stuff
-plt = scatter3d(data[1, :], data[2, :], data[3, :], label="data", color="white", camera=(30, 70))
-plot3d!(curve[1, :], curve[2, :], curve[3, :], label="curve", color="green", lw=4)
-
-scatter3d!(knots_optim[1, :], knots_optim[2, :], knots_optim[3, :], label="optim. knoblackts", color="red", ms=10)
-scatter3d!(knots_init[1, :], knots_init[2, :], knots_init[3, :], label="init. knots", color="black", ms=7)
-scatter3d!([knots_init[1, 1]], [knots_init[2, 1]], [knots_init[3, 1]], label=nothing, color="blue", ms=5)
-
-
-display(plt)
+display(plt);
 @info "Done, happy days!"

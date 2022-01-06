@@ -3,28 +3,34 @@ module TestData
     include("Geometry.jl")
     import .Geometry: Points
 
-    export circle, sine, circle3D
+    export circle, sine, circle3D, circle4D
 
     noise(X; σ=0.1) = σ * randn(size(X))
 
-    function circle(;σ=.1)
-        t =  .01:.01:2*pi
+    function circle(;δ=0.1, σ=.1)
+        t =  δ:δ:2*pi
         X = [cos.(t) sin.(t)]
         return Points((X + noise(X; σ=σ))')
     end
 
 
-    function sine(;σ=.1)
-        t =  .01:.01:2*pi
+    function sine(;δ=0.1, σ=.1)
+        t =  δ:δ:2*pi
         X = [t sin.(t)]
         return Points((X + noise(X; σ=σ))')
     end
 
 
-    function circle3D(;σ=.02)
-        t =  .01:.01:2*pi
+    function circle3D(;δ=.1, σ=.02)
+        t =  δ:δ:2*pi
         X = [cos.(t) sin.(t) sin.(2t)]
         return Points((X + noise(X; σ=σ))')
     end
 
+
+    function circle4D(;δ=.1, σ=.02)
+        t =  δ:δ:2*pi
+        X = [cos.(t) sin.(t) sin.(2t) cos.(2t)]
+        return Points((X + noise(X; σ=σ))')
+    end
 end

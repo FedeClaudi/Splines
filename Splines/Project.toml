@@ -1,8 +1,12 @@
 name = "Splines"
-uuid = "34ec1c54-dc24-44c2-9cb7-3a58ea01e2d3"
+uuid = "b21ccb3d-ab97-45e9-a09c-037534732ba5"
 authors = ["FedeClaudi <federicoclaudi@protonmail.com>"]
 version = "0.1.0"
 
 [deps]
 Clustering = "aaaa29a8-35af-508c-8bc3-b662a17a0fe5"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
