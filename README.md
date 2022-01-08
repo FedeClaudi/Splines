@@ -3,12 +3,12 @@ Spline interpolation in Julia
 
 
 ### TODO
-- [ ] piecewise interpolation: reduce allocation
+- [x] piecewise interpolation: reduce allocation
 - [ ] b-splines
 - [ ] bezier curve
+- [ ] algebraic topology to get curve topology from data
 
-
-- [ ] test piecewise linear on 3D and > 3D 
+- [x] test piecewise linear on 3D and > 3D 
 
 
 - [ ] write tests
