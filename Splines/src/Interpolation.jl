@@ -26,7 +26,6 @@ module Interpolation
     lerp(x₀::Point, x₁::Point, p::AbstractArray)::AbstractArray = @. x₀' * (1 - p) + x₁' * p
 
 
-
     """
         PiecewiseLinear(nodes[; η=100])
 
@@ -167,11 +166,11 @@ module Interpolation
 
         `S(t) = ∑ᵢⁿ Nᵢ(t)Xᵢ`
     """
-    function eval_bspline(t::Number; k::Knots, X::Points, d::Int=1)
+    function eval_bspline(t::Number; k::Knots, nodes::Points, d::Int=1)
         # Sum the product of the n-many basis functions with the control points.
-        out = zeros(size(X, 1))
-        for i in 0:size(X, 2)-1  # n-many basis functions
-            out += N(t; k, i=i, d=d) .* X[:, i+1]
+        out = zeros(size(nodes, 1))
+        for i in 0:size(nodes, 2)-1  # n-many basis functions
+            out += N(t; k, i=i, d=d) .* nodes[:, i+1]
         end
         return out
     end
@@ -181,27 +180,35 @@ module Interpolation
 
     Method for evalutaing the bspline function over a vector of values
     """
-    function eval_bspline(τ::Vector{Float64}; k::Knots, X::Points, d::Int=1)
-        hcat(eval_bspline.(τ; k, X, d=d)...)
+    function eval_bspline(τ::Vector{Float64}; k::Knots, nodes::Points, d::Int=1)
+        hcat(eval_bspline.(τ; k, nodes, d=d)...)
     end
 
 
     """
-        BSpline(X, d[; δt=0.01, knots_type=:uniform])
+        BSpline(X; d, [δt=0.01, knots_type=:uniform])
 
-    Computes the b-spline of degree 'd' given a set of control points X (d x N, of type ::Points).
+    Computes the b-spline of degree 'd' given a set of control nodes (d x N, of type ::Points).
     The paramtert 'δt' specifies how densly to sample the paramter interval τ=[0,1] (i.e. how many
     points in the bspline curve).
     """
-    function BSpline(X::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform)::Points
+    function BSpline(nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform)::Points
         if d == 1
             @warn "For b-splines with d=1, `PiecewiseLinear` offers a more efficient implementation"
         end
-        n = size(X, 2) - 1 # number of control points
+        n = size(nodes, 2) - 1 # number of control points
         k = eval(:($knots_type($n, $d)))
         τ = Array(0:δt:1)  # domain
         @debug "Fitting spline of degree $d with $n control points ($(size(k, 1)) knots)"
 
-        return eval_bspline(τ; k, X, d=d)[:, 1:end-1]
+        return eval_bspline(τ; k, nodes, d=d)[:, 1:end-1]
+    end
+
+    """
+        In place implementation of BSpline function.
+    """
+    function BSpline!(curve::Points, mpdes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform)::Points
+        curve = BSpline(mpdes; d=d, δt=δt, knots_type=knots_type)
     end
 end
+

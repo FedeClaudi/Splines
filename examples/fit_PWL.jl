@@ -9,7 +9,7 @@ Revise.revise()
 
 
 import Splines
-import Splines.Fit: fitPWL as fit
+import Splines: fit
 
 """
     Fit a piecewise linear curve to a point-cloud in 3D Euclidean space.
@@ -20,6 +20,7 @@ import Splines.Fit: fitPWL as fit
     an error (lenght of the resulting curve + fit to the data).
     The curve is then done through piecewise interpolation of consecutive pairs of data.
 """
+ENV["JULIA_DEBUG"]="all"
 
 gr()
 
@@ -27,7 +28,14 @@ gr()
 data = Splines.TestData.circle3D(σ=.1, δ=.001)
 
 # fit
-nodes_init, nodes_optim, curve = fit(data; η=20, closed=true, α=1.0)
+nodes_init, nodes_optim, curve, opt_res = fit(
+            data, 
+            :PiecewiseLinear;  # type of curve to fit
+            n=20, # number of nodes
+            closed=true
+            )
+
+print(opt_res)
 
 
 # plot results

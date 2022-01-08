@@ -4,7 +4,8 @@ Spline interpolation in Julia
 
 ### TODO
 - [x] piecewise interpolation: reduce allocation
-- [ ] b-splines
+- [x] b-splines
+  - [ ] allow for `closed=true` like piecewise linear
 - [ ] bezier curve
 - [ ] algebraic topology to get curve topology from data
 
