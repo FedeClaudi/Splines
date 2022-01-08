@@ -192,14 +192,18 @@ module Interpolation
     The paramtert 'δt' specifies how densly to sample the paramter interval τ=[0,1] (i.e. how many
     points in the bspline curve).
     """
-    function BSpline(nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform)::Points
+    function BSpline(nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Points
         if d == 1
             @warn "For b-splines with d=1, `PiecewiseLinear` offers a more efficient implementation"
         end
+
+        if closed
+            nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
+        end
+
         n = size(nodes, 2) - 1 # number of control points
         k = eval(:($knots_type($n, $d)))
         τ = Array(0:δt:1)  # domain
-        @debug "Fitting spline of degree $d with $n control points ($(size(k, 1)) knots)"
 
         return eval_bspline(τ; k, nodes, d=d)[:, 1:end-1]
     end
@@ -207,8 +211,8 @@ module Interpolation
     """
         In place implementation of BSpline function.
     """
-    function BSpline!(curve::Points, mpdes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform)::Points
-        curve = BSpline(mpdes; d=d, δt=δt, knots_type=knots_type)
+    function BSpline!(curve::Points, mpdes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Points
+        curve = BSpline(mpdes; d=d, δt=δt, knots_type=knots_type, closed=closed)
     end
 end
 

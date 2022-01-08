@@ -67,11 +67,12 @@ module Fit
             α::Float64=1.0, 
             β::Float64=1.0, 
             nodes_sorting_method::Symbol=:smallest,
+            n_iter::Int=250,
             kwargs...
         )
         @info "Fitting $curve_fn | $(size(data, 2)) data points with $n nodes - α=$α, β=$β"
         @debug "Keyword arguments: $(["$(v[1]):$(v[2])" for v in kwargs])"
-        
+
         # initialize KNOTS to data
         clusters = kmeans(data, n)
         nodes_init = sort_points(clusters.centers; selection_method=nodes_sorting_method)
@@ -89,10 +90,9 @@ module Fit
         # optimize nodes position
         @debug "Optimizing nodes placement"
         𝐿(k) = cost(k, labelled_data, curve, curve_fn!; α=α, β=β, kwargs...)
-        opt_res = optimize(𝐿, nodes_init, iterations=100)
+        opt_res = optimize(𝐿, nodes_init, iterations=n_iter)
         
         nodes_optim = sort_points(opt_res.minimizer, selection_method=nodes_sorting_method)
-        @debug(opt_res)
 
         # create curve
         @debug "Creating curve from nodes"

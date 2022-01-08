@@ -22,6 +22,8 @@ import Splines: fit
     The curve is then done through piecewise interpolation of consecutive pairs of data.
 """
 
+ENV["JULIA_DEBUG"]="all"
+
 gr()
 
 # initialize raw data points
@@ -30,15 +32,16 @@ data = Splines.TestData.circle3D(σ=.1, δ=.001)
 # fit
 nodes_init, nodes_optim, curve = fit(
             data, 
-            :BSline;  # type of curve to fit
+            :BSpline;  # type of curve to fit
             n=10, # number of nodes
             d=3,  # dimensionality of the spline
+            closed=true,  # ensure the curve is a closed loop
             )
 
 
 # plot results
 # points and curve
-plt = scatter3d(data[1, :], data[2, :], data[3, :], label="data", color="white", camera=(30, 70))
+plt = scatter3d(data[1, :], data[2, :], data[3, :], label="data", color="white", camera=(40, 60))
 plot3d!(curve[1, :], curve[2, :], curve[3, :], label="curve", color="green", lw=4)
 
 # nodes position
