@@ -91,7 +91,7 @@ module Fit
         @debug "Optimizing nodes placement"
         𝐿(k) = cost(k, labelled_data, curve, curve_fn!; α=α, β=β, kwargs...)
         opt_res = optimize(𝐿, nodes_init, iterations=n_iter)
-        
+        @debug opt_res
         nodes_optim = sort_points(opt_res.minimizer, selection_method=nodes_sorting_method)
 
         # create curve

@@ -3,7 +3,7 @@ import Pkg
 Pkg.activate("Splines")
 
 
-using Plots
+using PlotlyJS
 using Revise
 Revise.revise()
 
@@ -22,7 +22,6 @@ import Splines: fit
 """
 ENV["JULIA_DEBUG"]="all"
 
-gr()
 
 # initialize raw data points
 data = Splines.TestData.circle3D(σ=.1, δ=.001)
@@ -39,13 +38,7 @@ print(opt_res)
 
 
 # plot results
-# points and curve
-plt = scatter3d(data[1, :], data[2, :], data[3, :], label="data", color="white", camera=(30, 70))
-plot3d!(curve[1, :], curve[2, :], curve[3, :], label="curve", color="green", lw=4)
-
-# nodes position
-scatter3d!(nodes_optim[1, :], nodes_optim[2, :], nodes_optim[3, :], label="optim. knoblackts", color="red", ms=10)
-scatter3d!(nodes_init[1, :], nodes_init[2, :], nodes_init[3, :], label="init. nodes", color="black", ms=7)
-
-display(plt)
+Splines.plot_fit_results(
+    data, curve, nodes_optim, nodes_init
+)
 @info "Done, happy days!"

@@ -9,6 +9,10 @@ Spline interpolation in Julia
 - [ ] bezier curve
 - [ ] algebraic topology to get curve topology from data
 
+- [x] cleanup ploting code
+- [ ] why is PWL so slow to optimize first round?
+- [ ] parametrize curves somehow
+
 - [x] test piecewise linear on 3D and > 3D 
 
 
