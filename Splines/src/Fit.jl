@@ -11,7 +11,7 @@ module Fit
 
     import .Geometry: Point, Points
     import .Geometry as gm
-    import .Interpolation: PiecewiseLinear, PiecewiseLinear!, BSpline, BSpline!
+    import .Interpolation: PiecewiseLinear, PiecewiseLinear!, BSpline, BSpline!, Bezier, Bezier!
     import .Utils: sort_points
 
     export fitPWL

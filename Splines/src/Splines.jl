@@ -6,7 +6,7 @@ module Splines
     include("Visuals.jl")
 
     import .Geometry: Point, Points, distances, curve_length
-    import .Interpolation: PiecewiseLinear, PiecewiseLinear!, lerp, BSpline
+    import .Interpolation: PiecewiseLinear, PiecewiseLinear!, lerp, BSpline, BSpline!, Bezier, Bezier!
     import .TestData
     import .Fit: fit
     import .Visuals: plot_fit_results

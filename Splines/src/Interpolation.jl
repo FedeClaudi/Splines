@@ -5,7 +5,7 @@ module Interpolation
     include("Geometry.jl")
     import .Geometry: Point, Points
 
-    export lerp, PiecewiseLinear, PiecewiseLinear, BSpline
+    export lerp, PiecewiseLinear, PiecewiseLinear, BSpline, Bezier, Bezier!
 
     const Knots = Vector{Float64}
 
@@ -211,8 +211,49 @@ module Interpolation
     """
         In place implementation of BSpline function.
     """
-    function BSpline!(curve::Points, mpdes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Points
-        curve = BSpline(mpdes; d=d, δt=δt, knots_type=knots_type, closed=closed)
+    function BSpline!(curve::Points, nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Points
+        curve = BSpline(nodes; d=d, δt=δt, knots_type=knots_type, closed=closed)
+    end
+
+    # ---------------------------------------------------------------------------- #
+    #                                    Bezier                                    #
+    # ---------------------------------------------------------------------------- #
+
+    """
+        Bernstein(t::Float64; i::Int, n::Int)
+
+    Evaluate the Bernstein polynomial at paramter value `t` given the index `i` and the number
+    of polynomials `n`.
+    """
+    Bernstein(t::Float64; i::Int, n::Int)::Float64 = binomial(n, i) * t^i * (1 - t)^(n-i) 
+    Bernstein(τ::Vector{Float64}; i::Int, n::Int)::Vector{Float64} = @. binomial(n, i) * τ^i * (1 - τ)^(n-i) 
+
+    """
+        eval_bezier(t::Float64; i::Int, n::Int)
+    
+    Compute the value of a Bezier curve through `n` control `nodes`
+    """
+    eval_bezier(t::Float64; n::Int, nodes::Points) = sum((i)->Bernstein(t; i=i, n=n)* nodes[:, i+1], 0:n)
+    eval_bezier(τ::AbstractArray; n::Int, nodes::Points) = sum((i)->Bernstein(τ; i=i, n=n)' .* nodes[:, i+1], 0:n)
+
+    """
+        Bezier(nodes::Points;   δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)
+
+    Compute the Bezier curve given a set of `nodes` (d x N array of points)
+    """
+    function Bezier(nodes::Points; δt::Float64=.01, closed::Bool=false)::Points
+        if closed
+            nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
+        end
+
+        n = size(nodes, 2) - 1 # number of control points
+        τ = Array(0:δt:1)  # paramter interval 
+
+        return eval_bezier(τ; n=n, nodes)[:, 1:end-1]
+    end
+
+    function Bezier!(curve::Points, nodes::Points; δt::Float64=.01, closed::Bool=false)::Points
+        curve = Bezier(nodes; δt=δt, closed=closed)
     end
 end
 

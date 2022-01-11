@@ -1,4 +1,3 @@
-
 # ? activate Splines
 import Pkg
 Pkg.activate("Splines")
@@ -13,7 +12,7 @@ import Splines
 import Splines: fit
 
 """
-    Fit a b-spline curve to a point-cloud in 3D Euclidean space.
+    Fit a piecewise linear curve to a point-cloud in 3D Euclidean space.
 
     The curve is defined by a set of 'nodes', point in 3D space. Thes nodes
     are initialized as the centroids of clusters identified through kMeans 
@@ -21,7 +20,6 @@ import Splines: fit
     an error (lenght of the resulting curve + fit to the data).
     The curve is then done through piecewise interpolation of consecutive pairs of data.
 """
-
 ENV["JULIA_DEBUG"]="all"
 
 
@@ -29,13 +27,14 @@ ENV["JULIA_DEBUG"]="all"
 data = Splines.TestData.circle3D(σ=.1, δ=.001)
 
 # fit
-nodes_init, nodes_optim, curve = fit(
+nodes_init, nodes_optim, curve, opt_res = fit(
             data, 
-            :BSpline;  # type of curve to fit
-            n=10, # number of nodes
-            d=3,  # dimensionality of the spline
-            closed=true,  # ensure the curve is a closed loop
+            :PiecewiseLinear;  # type of curve to fit: :PiecewiseLinear, :BSplien, :Bezier
+            n=20, # number of nodes
+            closed=true
             )
+
+print(opt_res)
 
 
 # plot results

@@ -1,9 +1,12 @@
 module Geometry
 
-    export Point, Points, distances, curve_length
+    export Point, Points, asPoints, distances, curve_length
 
-    const Point = Vector{Float64}
-    const Points = AbstractArray{Float64}
+    const Point{T<:Real} = Vector{T}
+    const Points{T<:Real} = AbstractArray{T}
+
+    asPoints(X) = AbstractArray{Float64}(X)
+    
 
 
     # --------------------------------- DISTANCES -------------------------------- #

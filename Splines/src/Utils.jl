@@ -2,7 +2,7 @@
 module Utils
 
     include("Geometry.jl")
-    import .Geometry: Points, distances
+    import .Geometry: Points, distances, asPoints
 
     export dropCol
 
@@ -45,7 +45,7 @@ module Utils
     """
     function sort_points(points::Points; selection_method::Symbol=:first)::Points
         #initialize
-        sorted = Points(zeros(size(points)))
+        sorted = asPoints(zeros(size(points)))
         
         # select a staring point
         sel_idx = eval(:($selection_method($points)))
