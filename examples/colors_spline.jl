@@ -29,12 +29,12 @@ lines = []
 for points in [nodes, r_nodes, b_nodes, g_nodes]
     spline = BSpline(points, d=3; δt=0.005)
     plotted_line = scatter(
-        x=spline[1, :],
-        y=spline[2, :],
-        z=spline[3, :],
+        x=spline.points[1, :],
+        y=spline.points[2, :],
+        z=spline.points[3, :],
         mode="markers",
         type="scatter3d",
-        line = attr(color=spline, width=20), name=nothing)
+        line = attr(color=spline.points, width=20), name=nothing)
     push!(lines, plotted_line)
 end
 

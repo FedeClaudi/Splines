@@ -8,14 +8,15 @@ Spline interpolation in Julia
 - [x] b-splines
   - [x] allow for `closed=true` like piecewise linear
 - [x] bezier curve
-  - [ ] rational bezier curve
+  - [x] rational bezier curve
   - [ ] spline by joining multiple d-degree bezier curves
 - [ ] algebraic topology to get curve topology from data
 - [x] cleanup ploting code
 - [x] spline in RGB space
-- [ ] parametrize curves somehow
-  - [ ] bspline points are not sampled uniformely!
-- [ ] add methods to evalute curves at a single parmtere value
+- [x] parametrize curves somehow
+  - [ ] piecewise linear is not parametrized!
+- [x] add methods to evalute curves at a single parmtere value
+- [ ] compute curve geometry (length, curvature etc...)
 
 # speed
 - [ ] why is PWL so slow to optimize first round?

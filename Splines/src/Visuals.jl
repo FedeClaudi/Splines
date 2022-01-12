@@ -17,7 +17,7 @@ module Visuals
             ),
         
             # plot curve
-            scatter(x=curve[1, :], y=curve[2, :], z=curve[3, :], mode="lines", type="scatter3d", color="green", 
+            scatter(x=curve.points[1, :], y=curve.points[2, :], z=curve.points[3, :], mode="lines", type="scatter3d", color="green", 
                     line = attr(color="royalblue", width=4), name="curve"),
         
             # plot nodes

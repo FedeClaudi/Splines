@@ -6,9 +6,7 @@ using PlotlyJS
 using Revise
 Revise.revise()
 
-using BenchmarkTools    
-
-import Splines: BSpline, PiecewiseLinear, Bezier
+import Splines: BSpline, PiecewiseLinear, Bezier, RationalBezier
 
 
 """
@@ -33,15 +31,13 @@ pwl = PiecewiseLinear(X)
 # Bezier curve
 bezier = Bezier(X)
 
-# evaluate performance
-@info "Benchmarking piecewise linear"
-@btime PiecewiseLinear(X);
-
-@info "Benchmarking B spline"
-@btime BSpline(X, d=3);
-
-@info "Benchmarking Bezier"
-@btime Bezier(X);
+# rational bezier curve
+weights = ones(size(X, 2))
+weights[3] = -1
+weights[5] = 2
+weights[end-2] = 2
+weights[end-1] = -1
+rbezier = RationalBezier(X, weights)
 
 # plot
 display(plot([
@@ -53,30 +49,34 @@ display(plot([
             opacity=1,
         ), name="nodes"
     ),
-    scatter(x=spline[1, :], y=spline[2, :], z=spline[3, :], mode="lines", type="scatter3d",
+    scatter(x=spline.points[1, :], y=spline.points[2, :], z=spline.points[3, :], mode="lines", type="scatter3d",
             line = attr(color="#D81B60", width=12), name="spline"),
 
-    scatter(x=pwl[1, :], y=pwl[2, :], z=pwl[3, :], mode="lines", type="scatter3d", 
+    scatter(x=pwl.points[1, :], y=pwl.points[2, :], z=pwl.points[3, :], mode="lines", type="scatter3d", 
             line = attr(color="#546E7A", width=12), name="PWL"),
 
-    scatter(x=bezier[1, :], y=bezier[2, :], z=bezier[3, :], mode="lines", type="scatter3d",
+    scatter(x=bezier.points[1, :], y=bezier.points[2, :], z=bezier.points[3, :], mode="lines", type="scatter3d",
             line = attr(color="#F4511E", width=12), name="bezier"),
+
+    scatter(x=rbezier.points[1, :], y=rbezier.points[2, :], z=rbezier.points[3, :], mode="lines", type="scatter3d",
+            line = attr(color="blue", width=12), name="Rational bezier"),
 ],  Layout(
-    xaxis=attr(
-        nticks=4,
-        range=[0, 255],
-        axis=([], false),
-        name="R",
-    ),
-    yaxis=attr(
-        nticks=4,
-        range=[0, 255],
-        axis=([], false),
-    ),
-    zaxis=attr(
-        nticks=4,
-        range=[0, 255],
-        axis=([], false),
+    scene=attr(        
+
+        xaxis=attr(
+            nticks=3,
+
+        ),
+        yaxis=attr(
+            nticks=3,
+
+        ),
+        zaxis=attr(
+            nticks=3,
+
+        ),
     ),
 )))
 @info "Done!"
+
+

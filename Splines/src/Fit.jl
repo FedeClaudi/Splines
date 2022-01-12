@@ -37,7 +37,7 @@ module Fit
         )::Float64
 
         # compute length of curve
-        length_cost = gm.curve_length(curve_fn!(curve, nodes; kwargs...))
+        length_cost = gm.curve_length(curve_fn!(curve, nodes; kwargs...).points)
 
         # compute distance between knot position and datapoints assigned to it by clustering
         distance_cost = 0.0
@@ -85,7 +85,7 @@ module Fit
         curve_fn = eval(curve_fn)  # from ::Symbol to callable function
 
         # initialize a curve array
-        curve = curve_fn(nodes_init; kwargs...)
+        curve = curve_fn(nodes_init; kwargs...).points
 
         # optimize nodes position
         @debug "Optimizing nodes placement"
