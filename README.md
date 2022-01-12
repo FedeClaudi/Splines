@@ -28,3 +28,4 @@ Spline interpolation in Julia
 # docs
 - [ ] write tests
 - [ ] write docs
+- [ ] release

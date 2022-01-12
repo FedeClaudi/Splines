@@ -4,6 +4,7 @@ Module for fitting splines/interpolated curves to data
 module Fit
     import Clustering: kmeans, assignments, kmeans!
     import Optim: optimize
+    using ProgressMeter
 
     include("Geometry.jl")
     include("Interpolation.jl")
@@ -15,6 +16,12 @@ module Fit
     import .Utils: sort_points
 
     export fitPWL
+
+
+    function display_progess(optimization, progress)
+        next!(progress)
+        false
+    end
 
     """
         Computes the cost given a set of nodes and data points.
@@ -28,13 +35,18 @@ module Fit
     """
     function cost(
             nodes::Points,
-            labelled_data::Vector{Matrix{Float64}},  # datapoints with cluster label assigned
+            data::Points,
             curve::Points,
             curve_fn!;
             α=1.0,
             β=1.0,
+            n::Int=1,
             kwargs...
         )::Float64
+
+        # get new labels
+        labels = assignments(kmeans!(data, nodes))  # re-run because now nodes are sorted
+        labelled_data = [data[:, findall(labels .== n)] for n in range(1, stop=n)]
 
         # compute length of curve
         length_cost = gm.curve_length(curve_fn!(curve, nodes; kwargs...).points)
@@ -77,9 +89,6 @@ module Fit
         clusters = kmeans(data, n)
         nodes_init = sort_points(clusters.centers; selection_method=nodes_sorting_method)
 
-        labels = assignments(kmeans!(data, nodes_init))  # re-run because now nodes are sorted
-        labelled_data = [data[:, findall(labels .== n)] for n in range(1, stop=n)]
-
         # get callables for curve generating functions
         curve_fn! = eval(Symbol(curve_fn, "!"))  # from :Symbol to in-place version of fn
         curve_fn = eval(curve_fn)  # from ::Symbol to callable function
@@ -88,10 +97,12 @@ module Fit
         curve = curve_fn(nodes_init; kwargs...).points
 
         # optimize nodes position
+        prog = Progress(n_iter, .1, "Fitting nodes placement...")
         @debug "Optimizing nodes placement"
-        𝐿(k) = cost(k, labelled_data, curve, curve_fn!; α=α, β=β, kwargs...)
-        opt_res = optimize(𝐿, nodes_init, iterations=n_iter)
+        𝐿(k) = cost(k, data, curve, curve_fn!; α=α, β=β, n=n, kwargs...)
+        opt_res = optimize(𝐿, nodes_init, iterations=n_iter, callback=(x)->display_progess(x, prog))
         @debug opt_res
+
         nodes_optim = sort_points(opt_res.minimizer, selection_method=nodes_sorting_method)
 
         # create curve

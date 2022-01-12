@@ -31,7 +31,8 @@ nodes_init, nodes_optim, curve, opt_res = fit(
             data, 
             :Bezier;  # type of curve to fit: :PiecewiseLinear, :BSplien, :Bezier
             n=20, # number of nodes
-            closed=true
+            closed=true,
+            α=1.0, β=10.0,
             )
 
 print(opt_res)
