@@ -9,6 +9,7 @@ module Interpolation
 
     const Knots = Vector{Float64}
 
+
     # ---------------------------------------------------------------------------- #
     #                             LINEAR interpolation                             #
     # ---------------------------------------------------------------------------- #
@@ -112,7 +113,7 @@ module Interpolation
     # -------------------------- b-spline basis function ------------------------- #
 
     """
-        N_0(t, k; i=0)
+        N_0(τ, k; i=0)
 
     Zero-th order basis function for b-splines for the i-th knot.
         for t∈[k[i], k[i+1]] = 1
@@ -121,10 +122,10 @@ module Interpolation
     The additional "+1" index in the code is because in the bspline maths 
     the knots are indexed starting from 0.
     """
-    N_0(t::Number; k::Knots, i::Int=0) = (k[i+1] <= t < k[i+2]) ? 1 : 0
+    N_0(τ::Vector{Float64}; k::Knots, i::Int=0)::Vector{Float64} = (k[i+1] .<= τ .< k[i+2])
 
     """
-        N_D(t, k; i=0, d=0)
+        N_D(τ, k; i=0, d=0)
     
     D-th order basis function for b-splines for the i-th knot. 
     Built recursively on lower order basis functions.
@@ -134,65 +135,54 @@ module Interpolation
     The "j=i+1" index in the code is because in the bspline maths 
     the knots are indexed starting from 0.
     """
-    function N_D(t::Float64; k::Knots, i::Int=0, d::Int=0)::Number
+    function N_D(τ::Vector{Float64}; k::Knots, i::Int=0, d::Int=0)::Vector{Float64}
         j = i + 1
 
         kⱼ = k[j]
         k̂ = k[j + d + 1]
     
-        α = (t - kⱼ)/(k[j+d] - kⱼ + eps()) 
-        β = (k̂ - t)/(k̂ - k[j+1] + eps())
+        α = (τ .- kⱼ)/(k[j+d] - kⱼ + eps()) 
+        β = (k̂ .- τ)/(k̂ - k[j+1] + eps())
         
-        α * N(t; k=k, i=i, d=d-1) + β * N(t; k=k, i=i+1, d=d-1)
+        α .* N(τ; k=k, i=i, d=d-1) .+ β .* N(τ; k=k, i=i+1, d=d-1)
     end
 
 
     """
-        N(t, k; i=0, d=0)
+        N(τ, k; i=0, d=0)
 
     B-spline basis function for the i-th knot and d-th order.
     Calls either N_0 or N_D depending on the value of d.
     """
-    N(t::Number; k::Knots, i::Int=0, d::Int=0)::Number = (d == 0) ? N_0(t; k, i=i) : N_D(t; k, i=i, d=d)
+    N(τ::Vector{Float64}; k::Knots, i::Int=0, d::Int=0)::Vector{Float64} = (d == 0) ? N_0(τ; k, i=i) : N_D(τ; k, i=i, d=d)
 
 
     # ----------------------------- B-SPLINE FUNCTION ---------------------------- #
-
-    """
-        bspline(t::Number, k::Knots, X::Points; d::Int=1) 
-    
-    Value of a d-dimensional b-spline defined by a set of nkots `k` at `t ∈ [0,1]` given
-    control points `X` (dxN array of points).
-
-        `S(t) = ∑ᵢⁿ Nᵢ(t)Xᵢ`
-    """
-    function eval_bspline(t::Number; k::Knots, nodes::Points, d::Int=1)
-        # Sum the product of the n-many basis functions with the control points.
-        out = zeros(size(nodes, 1))
-        for i in 0:size(nodes, 2)-1  # n-many basis functions
-            out += N(t; k, i=i, d=d) .* nodes[:, i+1]
-        end
-        return out
-    end
-
-    """
-        eval_bspline(τ::Vector{Float64}, k::Knots, X::Points; d::Int=1)::Points
-
-    Method for evalutaing the bspline function over a vector of values
-    """
-    function eval_bspline(τ::Vector{Float64}; k::Knots, nodes::Points, d::Int=1)
-        hcat(eval_bspline.(τ; k, nodes, d=d)...)
-    end
-
-
     """
         BSpline(X; d, [δt=0.01, knots_type=:uniform])
 
     Computes the b-spline of degree 'd' given a set of control nodes (d x N, of type ::Points).
     The paramtert 'δt' specifies how densly to sample the paramter interval τ=[0,1] (i.e. how many
     points in the bspline curve).
+
+    Value of a d-dimensional b-spline defined by a set of nkots `k` at `t ∈ τ = [0,1]` given
+    control points `X` (dxN array of points).
+
+        `S(t) = ∑ᵢⁿ Nᵢ(t)Xᵢ`
     """
     function BSpline(nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Points
+        ndim = size(nodes, 1)
+        τ = Array(0:δt:1-δt)  # domain
+
+        curve = @MMatrix zeros(ndim, length(τ)-1)
+
+        return BSpline!(curve, nodes; d=d, δt=δt, knots_type=knots_type, closed=closed)
+    end
+
+    """
+        In place implementation of BSpline function. See `BSpline`
+    """
+    function BSpline!(curve::Points, nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Points
         if d == 1
             @warn "For b-splines with d=1, `PiecewiseLinear` offers a more efficient implementation"
         end
@@ -201,18 +191,13 @@ module Interpolation
             nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
         end
 
+        ndim = size(nodes, 1)
         n = size(nodes, 2) - 1 # number of control points
         k = eval(:($knots_type($n, $d)))
-        τ = Array(0:δt:1)  # domain
+        τ = Array(0:δt:1-δt)  # domain
 
-        return eval_bspline(τ; k, nodes, d=d)[:, 1:end-1]
-    end
-
-    """
-        In place implementation of BSpline function.
-    """
-    function BSpline!(curve::Points, nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Points
-        curve = BSpline(nodes; d=d, δt=δt, knots_type=knots_type, closed=closed)
+        B(i) = N(τ; k=k, i=i, d=d)' .* nodes[:, i+1]
+        curve = sum(B, 0:n)
     end
 
     # ---------------------------------------------------------------------------- #
@@ -225,16 +210,8 @@ module Interpolation
     Evaluate the Bernstein polynomial at paramter value `t` given the index `i` and the number
     of polynomials `n`.
     """
-    Bernstein(t::Float64; i::Int, n::Int)::Float64 = binomial(n, i) * t^i * (1 - t)^(n-i) 
     Bernstein(τ::Vector{Float64}; i::Int, n::Int)::Vector{Float64} = @. binomial(n, i) * τ^i * (1 - τ)^(n-i) 
 
-    """
-        eval_bezier(t::Float64; i::Int, n::Int)
-    
-    Compute the value of a Bezier curve through `n` control `nodes`
-    """
-    eval_bezier(t::Float64; n::Int, nodes::Points) = sum((i)->Bernstein(t; i=i, n=n)* nodes[:, i+1], 0:n)
-    eval_bezier(τ::AbstractArray; n::Int, nodes::Points) = sum((i)->Bernstein(τ; i=i, n=n)' .* nodes[:, i+1], 0:n)
 
     """
         Bezier(nodes::Points;   δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)
@@ -242,18 +219,29 @@ module Interpolation
     Compute the Bezier curve given a set of `nodes` (d x N array of points)
     """
     function Bezier(nodes::Points; δt::Float64=.01, closed::Bool=false)::Points
+        ndim = size(nodes, 1)
+        τ = Array(0:δt:1-δt)  # paramter interval 
+        curve = @MMatrix zeros(ndim, length(τ)-1)
+
+        return Bezier!(curve, nodes; δt=δt, closed=closed)
+    end
+
+    function Bezier!(curve::Points, nodes::Points; δt::Float64=.01, closed::Bool=false)::Points
         if closed
             nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
         end
 
         n = size(nodes, 2) - 1 # number of control points
-        τ = Array(0:δt:1)  # paramter interval 
+        τ = Array(0:δt:1-δt)
 
-        return eval_bezier(τ; n=n, nodes)[:, 1:end-1]
+        B(i) = Bernstein(τ; i=i, n=n)' .* nodes[:, i+1]
+        curve = sum(B, 0:n)
     end
 
-    function Bezier!(curve::Points, nodes::Points; δt::Float64=.01, closed::Bool=false)::Points
-        curve = Bezier(nodes; δt=δt, closed=closed)
-    end
+
+    # ---------------------------------------------------------------------------- #
+    #                                Rational Bezier                               #
+    # ---------------------------------------------------------------------------- #
+
 end
 

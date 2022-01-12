@@ -6,6 +6,8 @@ using PlotlyJS
 using Revise
 Revise.revise()
 
+using BenchmarkTools    
+
 import Splines: BSpline, PiecewiseLinear, Bezier
 
 
@@ -20,7 +22,7 @@ import Splines: BSpline, PiecewiseLinear, Bezier
 """
 
 # define control points
-X = [[3, 1, 0] [2.5, 3, .2] [0, 4, .6] [-2.5, 3, 1] [-1, 0, 1.4] [-2.5, -2, 2] [0, -1, 2.2] [2.5, -3, 3] [3, -1, 3.5]]
+X = [[3, 1, 0] [2.5, 3, .2] [0, 4, .6] [-2.5, 3, 1] [-1, 0, 1.4] [-2.5, -2, 2] [0, -1, 3.2] [2.5, -3, 4.3] [3, -4, 5] [1, -5, 7] [-3, -1, 8] [-1.2, 1, 8.9]]
 
 # spline curve of 3d degree
 spline = BSpline(X, d=3)
@@ -30,6 +32,16 @@ pwl = PiecewiseLinear(X)
 
 # Bezier curve
 bezier = Bezier(X)
+
+# evaluate performance
+@info "Benchmarking piecewise linear"
+@btime PiecewiseLinear(X);
+
+@info "Benchmarking B spline"
+@btime BSpline(X, d=3);
+
+@info "Benchmarking Bezier"
+@btime Bezier(X);
 
 # plot
 display(plot([
