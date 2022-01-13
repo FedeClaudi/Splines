@@ -9,6 +9,9 @@ module Interpolation
 
     const Knots = Vector{Float64}
 
+    # ---------------------------------------------------------------------------- #
+    #                                     CURVE                                    #
+    # ---------------------------------------------------------------------------- #
     """
         Curve
 
@@ -39,13 +42,48 @@ module Interpolation
     function Base.show(io::IO, curve::Curve)
         print(io, "Curve: '$(curve.name)' $(size(curve.points))")
     end
-    
+
+
+    # ----------------------------- helper functions ----------------------------- #
     """
         Get the order of a curve (n-1) given a set of n nodes
     """
     ν(X::Points) = size(X, 2)-1
 
 
+    """
+        Creates an empty MMatrix with the same dimensions as the curve generate 
+        by a spline function.
+    """
+    function init_curve(nodes::Points, δt::Float64)::Points
+        ndim = size(nodes, 1)  # number of dimensions
+        nt = Int(1/δt)  # number of parameter steps
+        return @MMatrix zeros(ndim, nt)
+    end
+
+    """
+        Alteranate method signature, for when the dimensions of the target curve
+        are alraedy known.
+    """
+    init_curve(ndim::Int, nt::Int) = @MMatrix zeros(ndim, nt)
+
+
+    """
+        Common computations carried out before fitting any spline: getting a range
+        over the parameter's interval, 'closing' the curve by repeating a node etc..
+    """
+    function prep_spline_parameters(nodes::Points, δt::Float64, closed::Bool)
+
+        if closed
+            nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
+        end
+
+        ndim = size(nodes, 1)
+        n = ν(nodes)
+        τ = Array(0:δt:1-δt)  # parameter range
+
+        return nodes, ndim, n, τ
+    end
     # ---------------------------------------------------------------------------- #
     #                             LINEAR interpolation                             #
     # ---------------------------------------------------------------------------- #
@@ -76,8 +114,7 @@ module Interpolation
         N = size(nodes, 2)
         n_nodes = closed ? N : N - 1
         ηₜ = η * n_nodes
-        curve_points = @MMatrix zeros(size(nodes, 1), ηₜ)
-        return PiecewiseLinear!(curve_points, nodes; η=η, closed=closed)
+        return PiecewiseLinear!(init_curve(size(nodes, 1), ηₜ), nodes; η=η, closed=closed)
     end
 
     """
@@ -216,7 +253,7 @@ module Interpolation
         BSpline(X; d, [δt=0.01, knots_type=:uniform])
 
     Computes the b-spline of degree 'd' given a set of control nodes (d x N, of type ::Points).
-    The paramtert 'δt' specifies how densly to sample the paramter interval τ=[0,1] (i.e. how many
+    The paramtert 'δt' specifies how densly to sample the parameter interval τ=[0,1] (i.e. how many
     points in the bspline curve).
 
     Value of a d-dimensional b-spline defined by a set of nkots `k` at `t ∈ τ = [0,1]` given
@@ -225,12 +262,7 @@ module Interpolation
         `S(t) = ∑ᵢⁿ Nᵢ(t)Xᵢ`
     """
     function BSpline(nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Curve
-        ndim = size(nodes, 1)
-        τ = Array(0:δt:1-δt)  # domain
-
-        curve_points = @MMatrix zeros(ndim, length(τ)-1)
-
-        return BSpline!(curve_points, nodes; d=d, δt=δt, knots_type=knots_type, closed=closed)
+        BSpline!(init_curve(nodes, δt), nodes; d=d, δt=δt, knots_type=knots_type, closed=closed)
     end
 
     """
@@ -249,16 +281,12 @@ module Interpolation
         if d == 1
             @warn "For b-splines with d=1, `PiecewiseLinear` offers a more efficient implementation"
         end
+        
+        # prep
+        nodes, ndim, n, τ = prep_spline_parameters(nodes, δt, closed)
+        k = eval(:($knots_type($n, $d)))  # initialize knots with the desired method
 
-        if closed
-            nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
-        end
-
-        ndim = size(nodes, 1)
-        n = ν(nodes)
-        k = eval(:($knots_type($n, $d)))
-        τ = Array(0:δt:1-δt)  # domain
-
+        # compute spline
         B(i) = N(τ; k=k, i=i, d=d)' .* nodes[:, i+1]
         curve_points = sum(B, 0:n)
 
@@ -277,12 +305,11 @@ module Interpolation
     """
         Bernstein(t::Float64; i::Int, n::Int)
 
-    Evaluate the Bernstein polynomial at paramter value `t` given the index `i` and the number
+    Evaluate the Bernstein polynomial at parameter value `t` given the index `i` and the number
     of polynomials `n`.
     """
     Bernstein(τ::Vector{Float64}; i::Int, n::Int)::Vector{Float64} = @. binomial(n, i) * τ^i * (1 - τ)^(n-i) 
     Bernstein(t::Number; i::Int, n::Int)::Float64 = binomial(n, i) * t^i * (1 - t)^(n-i) 
-
 
     """
         Bezier(nodes::Points;   δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)
@@ -290,17 +317,13 @@ module Interpolation
     Compute the Bezier curve given a set of `nodes` (d x N array of points)
     """
     function Bezier(nodes::Points; δt::Float64=.01, closed::Bool=false)::Curve
-        ndim = size(nodes, 1)
-        τ = Array(0:δt:1-δt)  # paramter interval 
-        curve_points = @MMatrix zeros(ndim, length(τ)-1)
-
-        return Bezier!(curve_points, nodes; δt=δt, closed=closed)
+        return Bezier!(init_curve(nodes, δt), nodes; δt=δt, closed=closed)
     end
 
     """
         Bezier(t, X)
 
-    Evaluate a Bezier function at a given paramter value `t` and given a set
+    Evaluate a Bezier function at a given parameter value `t` and given a set
     of control nodes `X`
     """
     Bezier(t::Number; nodes::Points) = sum(
@@ -311,13 +334,10 @@ module Interpolation
         In place Bezier curve computation, see `Bezier` for more details.
     """
     function Bezier!(curve_points::Points, nodes::Points; δt::Float64=.01, closed::Bool=false)::Curve
-        if closed
-            nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
-        end
+        # prepare parameters
+        nodes, ndim, n, τ = prep_spline_parameters(nodes, δt, closed)
 
-        n = ν(nodes) # number of control points
-        τ = Array(0:δt:1-δt)
-
+        # compute bezier curve
         B(i) = Bernstein(τ; i=i, n=n)' .* nodes[:, i+1]
         curve_points = sum(B, 0:n)
 
@@ -342,17 +362,13 @@ module Interpolation
     Similar to `Bezier` but with an additional 1xN weights vector.
     """
     function RationalBezier(nodes::Points, weights::Vector{Float64}; δt::Float64=.01, closed::Bool=false)::Curve
-        ndim = size(nodes, 1)
-        τ = Array(0:δt:1-δt)  # paramter interval 
-        curve_points = @MMatrix zeros(ndim, length(τ)-1)
-
-        return RationalBezier!(curve_points, nodes, weights; δt=δt, closed=closed)
+        return RationalBezier!(init_curve(nodes, δt), nodes, weights; δt=δt, closed=closed)
     end
 
     """
         RationalBezier(t, X)
 
-    Evaluate a RationalBezier function at a given paramter value `t` and given a set
+    Evaluate a RationalBezier function at a given parameter value `t` and given a set
     of control nodes `X`
     """
     function RationalBezier(t::Number; nodes::Points, weights::Vector{Float64})
@@ -367,13 +383,8 @@ module Interpolation
         In-place rational Bezier curve computation, see `RationalBezier`
     """
     function RationalBezier!(curve_points::Points, nodes::Points, weights::Vector{Float64}; δt::Float64=.01, closed::Bool=false)::Curve
-        if closed
-            nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
-        end
-
-
-        n = ν(nodes) # number of control points
-        τ = Array(0:δt:1-δt)  # paramter interval 
+        # prepare parameters
+        nodes, ndim, n, τ = prep_spline_parameters(nodes, δt, closed)
 
         numerator(i) = Bernstein(τ; i=i, n=n)' .* nodes[:, i+1] .* weights[i+1]
         denominator(i) = Bernstein(τ; i=i, n=n)' .* weights[i+1]

@@ -17,6 +17,9 @@ Spline interpolation in Julia
   - [ ] piecewise linear is not parametrized!
 - [x] add methods to evalute curves at a single parmtere value
 - [ ] compute curve geometry (length, curvature etc...)
+- [ ] consider mergin Bezier with RationalBezier and BSpline with rational BSpline (and make rational BSpline)
+
+- [ ] Two dimensional splines
 
 # speed
 - [ ] why is PWL so slow to optimize first round?

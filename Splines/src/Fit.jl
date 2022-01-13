@@ -37,7 +37,7 @@ module Fit
             nodes::Points,
             data::Points,
             curve::Points,
-            curve_fn!;
+            curve_fn!;  # in place curve evaluation function
             α=1.0,
             β=1.0,
             n::Int=1,
@@ -95,6 +95,7 @@ module Fit
 
         # initialize a curve array
         curve = curve_fn(nodes_init; kwargs...).points
+        curve_fn!(curve, nodes_init; kwargs...);  # run it once so that it's compiled
 
         # optimize nodes position
         prog = Progress(n_iter, .1, "Fitting nodes placement...")

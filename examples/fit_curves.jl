@@ -12,7 +12,7 @@ import Splines
 import Splines: fit
 
 """
-    Fit a piecewise linear curve to a point-cloud in 3D Euclidean space.
+    Fit a curve to a point-cloud in 3D Euclidean space.
 
     The curve is defined by a set of 'nodes', point in 3D space. Thes nodes
     are initialized as the centroids of clusters identified through kMeans 
@@ -29,10 +29,10 @@ data = Splines.TestData.circle3D(σ=.1, δ=.001)
 # fit
 nodes_init, nodes_optim, curve, opt_res = fit(
             data, 
-            :Bezier;  # type of curve to fit: :PiecewiseLinear, :BSplien, :Bezier
+            :Bezier;  # type of curve to fit: :PiecewiseLinear, :BSpline, :Bezier
             n=20, # number of nodes
             closed=true,
-            α=1.0, β=10.0,
+            α=0.1, β=5.0,
             )
 
 print(opt_res)
