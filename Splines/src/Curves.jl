@@ -6,69 +6,7 @@ module Interpolation
     import .Types: Point, Points, Curve, Knots
     import .Utils: ν, init_curve, prep_spline_parameters
 
-    export PiecewiseLinear, PiecewiseLinear, BSpline, Bezier, Bezier!, RationalBezier, RationalBezier!
-
-
-    # ---------------------------------------------------------------------------- #
-    #                             LINEAR interpolation                             #
-    # ---------------------------------------------------------------------------- #
-    """
-        lerp(x₀, x₁, p)
-
-    Linear interpolation between two values, given an interpolation factor
-    `p ∈ [0, 1]`. `x₀` and `x₁` can be number of `Point`, but they need to have the same
-    Type and shape (if `Point`).
-    """
-    lerp(x₀::Point, x₁::Point, p::Float64)::Point = x₀ * (1 - p) + x₁ * p
-    lerp(x₀::Number, x₁::Number, p::Float64)::Number = x₀ * (1 - p) + x₁ * p
-    lerp(x₀::Point, x₁::Point, p::AbstractArray)::AbstractArray = @. x₀' * (1 - p) + x₁' * p
-
-
-    """
-        PiecewiseLinear(nodes[; η=100])
-
-    Piecewise linear interpolation between consecutive pairs of nodes 
-    (called nodes, d x N array, `Points`) ∈ ℝⁿ to return
-    a curve connecting them. The curve is specified by (η*N)-many points (d x η*N Points array), the 
-    parameter η specifies the number of points in each linear segment.
-    """
-    function PiecewiseLinear(nodes::Points; η::Int64=100, closed::Bool=false)::Curve
-        # compute quantities
-        N = size(nodes, 2)
-        n_nodes = closed ? N : N - 1
-        ηₜ = η * n_nodes
-        return PiecewiseLinear!(init_curve(size(nodes, 1), ηₜ), nodes; η=η, closed=closed)
-    end
-
-    """
-        PiecewiseLinear!(curve_points, nodes[; η=100])
-
-    In-place piecewise linear interpolation between consecutive pairs of nodes called nodes, given a
-    pre-allocated curve_points array (d x η*N Points array).
-    """
-    function PiecewiseLinear!(curve_points::Points, nodes::Points; η::Int64=100, closed::Bool=false)::Curve
-        # compute quantities
-        N = size(nodes, 2)
-        n_nodes = closed ? N : N - 1
-        P = range(0, 1, length=η)  # for interpolation
-        
-        # create curve_points by linear interpolation of each segment
-        for n in range(1, length=n_nodes)
-            if n == N
-                k₀, k₁ = nodes[:, end], nodes[:, 1]
-            else
-                k₀, k₁ = nodes[:, n], nodes[:, n+1]
-            end
-            curve_points[:, η * (n - 1) + 1: η * n] = lerp(k₀, k₁, P)'
-        end
-    
-        return Curve(
-            "PiecewiseLinear",
-            0:1,  # no params yet in piecewise linear
-            curve_points,
-            (t) -> print("No evaluating function for piecewise linear")
-        )
-    end
+    export BSpline, Bezier, Bezier!, RationalBezier, RationalBezier!
 
 
     # ---------------------------------------------------------------------------- #

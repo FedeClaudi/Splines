@@ -9,7 +9,6 @@ module Splines
     import .Types: Point, Points
     import .Geometry: distances, curve_length
     import .Curves: (
-        PiecewiseLinear, PiecewiseLinear!,
         BSpline, BSpline!
         Bezier, Bezier!,
         RationalBezier, RationalBezier!
@@ -18,6 +17,6 @@ module Splines
     import .Fit: fit
     import .Visuals: plot_fit_results
 
-    export Point, Points, distances, curve_length, PiecewiseLinear, PiecewiseLinear!, lerp, BSpline, fit, plot_fit_results
+    export Point, Points, BSpline, BSpline!, Bezier, Bezier!, fit, plot_fit_results
 
 end 
