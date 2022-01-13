@@ -1,12 +1,58 @@
 
 module Utils
+    import StaticArrays: @MMatrix
 
+    include("Types.jl")
     include("Geometry.jl")
-    import .Geometry: Points, distances, asPoints
 
-    export dropCol
+    import .Types: Points, asPoints
+    import .Geometry: distances
 
 
+    # ------------------------- curve creation helper fns ------------------------ #
+    """
+        Get the order of a curve (n-1) given a set of n nodes
+    """
+    ν(X::Points) = size(X, 2)-1
+
+
+    """
+        Creates an empty MMatrix with the same dimensions as the curve generate 
+        by a spline function.
+    """
+    function init_curve(nodes::Points, δt::Float64)::Points
+        ndim = size(nodes, 1)  # number of dimensions
+        nt = Int(1/δt)  # number of parameter steps
+        return @MMatrix zeros(ndim, nt)
+    end
+
+    """
+        Alteranate method signature, for when the dimensions of the target curve
+        are alraedy known.
+    """
+    init_curve(ndim::Int, nt::Int) = @MMatrix zeros(ndim, nt)
+
+
+    """
+        Common computations carried out before fitting any spline: getting a range
+        over the parameter's interval, 'closing' the curve by repeating a node etc..
+    """
+    function prep_spline_parameters(nodes::Points, δt::Float64, closed::Bool)
+
+        if closed
+            nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
+        end
+
+        ndim = size(nodes, 1)
+        n = ν(nodes)
+        τ = Array(0:δt:1-δt)  # parameter range
+
+        return nodes, ndim, n, τ
+    end
+
+
+
+    # ---------------------------------- sorting --------------------------------- #
     """
         dropCol(X::AbstractArray, idx::Int)
 

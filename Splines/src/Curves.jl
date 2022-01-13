@@ -1,93 +1,17 @@
 module Interpolation
-    import StaticArrays: @MMatrix
+
+    include("Utils.jl")
+    include("Types.jl")
+
+    import .Types: Point, Points, Curve, Knots
+    import .Utils: ν, init_curve, prep_spline_parameters
+
+    export PiecewiseLinear, PiecewiseLinear, BSpline, Bezier, Bezier!, RationalBezier, RationalBezier!
 
 
-    include("Geometry.jl")
-    import .Geometry: Point, Points
-
-    export lerp, PiecewiseLinear, PiecewiseLinear, BSpline, Bezier, Bezier!, RationalBezier, RationalBezier!
-
-    const Knots = Vector{Float64}
-
-    # ---------------------------------------------------------------------------- #
-    #                                     CURVE                                    #
-    # ---------------------------------------------------------------------------- #
-    """
-        Curve
-
-    Stores the results of fitting a spline to a set of nodes.
-    Contains the parameter values (`τ`) at which the fitted spline
-    was evaluated at, the coordinates (`points`) of the spline and a 
-    function (`f`) with signature `f(t::Number)::Vector{Number}` giving
-    the position of the spline at a parameter value `t ∈ [0,1]`.
-    """
-    struct Curve
-        name::String
-        τ::Vector{Float64}   # parameter values used when constructing curve
-        points::Points       # points along curve at param values
-        func                 # function to evaluate the curve at a param value
-    end
-
-    """
-        Make `Curve` callable such that `mycurve = Curve(...)` and then `mycurv(t)`
-        results in evaluating the curve function at the parameter value `t`.
-    """
-    function (curve::Curve)(t)
-        curve.func(t)
-    end
-
-    """
-        Custom printing of curve object
-    """
-    function Base.show(io::IO, curve::Curve)
-        print(io, "Curve: '$(curve.name)' $(size(curve.points))")
-    end
-
-
-    # ----------------------------- helper functions ----------------------------- #
-    """
-        Get the order of a curve (n-1) given a set of n nodes
-    """
-    ν(X::Points) = size(X, 2)-1
-
-
-    """
-        Creates an empty MMatrix with the same dimensions as the curve generate 
-        by a spline function.
-    """
-    function init_curve(nodes::Points, δt::Float64)::Points
-        ndim = size(nodes, 1)  # number of dimensions
-        nt = Int(1/δt)  # number of parameter steps
-        return @MMatrix zeros(ndim, nt)
-    end
-
-    """
-        Alteranate method signature, for when the dimensions of the target curve
-        are alraedy known.
-    """
-    init_curve(ndim::Int, nt::Int) = @MMatrix zeros(ndim, nt)
-
-
-    """
-        Common computations carried out before fitting any spline: getting a range
-        over the parameter's interval, 'closing' the curve by repeating a node etc..
-    """
-    function prep_spline_parameters(nodes::Points, δt::Float64, closed::Bool)
-
-        if closed
-            nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
-        end
-
-        ndim = size(nodes, 1)
-        n = ν(nodes)
-        τ = Array(0:δt:1-δt)  # parameter range
-
-        return nodes, ndim, n, τ
-    end
     # ---------------------------------------------------------------------------- #
     #                             LINEAR interpolation                             #
     # ---------------------------------------------------------------------------- #
-
     """
         lerp(x₀, x₁, p)
 
@@ -95,7 +19,6 @@ module Interpolation
     `p ∈ [0, 1]`. `x₀` and `x₁` can be number of `Point`, but they need to have the same
     Type and shape (if `Point`).
     """
-
     lerp(x₀::Point, x₁::Point, p::Float64)::Point = x₀ * (1 - p) + x₁ * p
     lerp(x₀::Number, x₁::Number, p::Float64)::Number = x₀ * (1 - p) + x₁ * p
     lerp(x₀::Point, x₁::Point, p::AbstractArray)::AbstractArray = @. x₀' * (1 - p) + x₁' * p

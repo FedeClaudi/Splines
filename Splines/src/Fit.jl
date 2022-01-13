@@ -7,10 +7,11 @@ module Fit
     using ProgressMeter
 
     include("Geometry.jl")
+    include("Types.jl")
     include("Interpolation.jl")
     include("Utils.jl")
 
-    import .Geometry: Point, Points
+    import .Types: Point, Points
     import .Geometry as gm
     import .Interpolation: PiecewiseLinear, PiecewiseLinear!, BSpline, BSpline!, Bezier, Bezier!
     import .Utils: sort_points

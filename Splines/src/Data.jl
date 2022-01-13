@@ -1,7 +1,7 @@
 module TestData
 
-    include("Geometry.jl")
-    import .Geometry: asPoints
+    include("Types.jl")
+    import .Types: asPoints
 
     export circle, sine, circle3D, circle4D
 

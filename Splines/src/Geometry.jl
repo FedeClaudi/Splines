@@ -1,13 +1,8 @@
 module Geometry
+    include("Types.jl")
+    import .Types: Point,  Points
 
-    export Point, Points, asPoints, distances, curve_length
-
-    const Point{T<:Real} = Vector{T}
-    const Points{T<:Real} = AbstractArray{T}
-
-    asPoints(X) = AbstractArray{Float64}(X)
-    
-
+    export distances, curve_length
 
     # --------------------------------- DISTANCES -------------------------------- #
     """

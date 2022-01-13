@@ -1,12 +1,19 @@
 module Splines
+    include("Types.jl")
     include("Geometry.jl")
     include("Data.jl")
-    include("Interpolation.jl")
+    include("Curves.jl")
     include("Fit.jl")
     include("Visuals.jl")
 
-    import .Geometry: Point, Points, distances, curve_length
-    import .Interpolation: PiecewiseLinear, PiecewiseLinear!, lerp, BSpline, BSpline!, Bezier, Bezier!, RationalBezier, RationalBezier!
+    import .Types: Point, Points
+    import .Geometry: distances, curve_length
+    import .Curves: (
+        PiecewiseLinear, PiecewiseLinear!,
+        BSpline, BSpline!
+        Bezier, Bezier!,
+        RationalBezier, RationalBezier!
+    )
     import .TestData
     import .Fit: fit
     import .Visuals: plot_fit_results
