@@ -8,12 +8,12 @@ module Fit
 
     include("Geometry.jl")
     include("Types.jl")
-    include("Interpolation.jl")
+    include("Curves.jl")
     include("Utils.jl")
 
     import .Types: Point, Points
     import .Geometry as gm
-    import .Interpolation: PiecewiseLinear, PiecewiseLinear!, BSpline, BSpline!, Bezier, Bezier!
+    import .Curves: BSpline, BSpline!, Bezier, Bezier!
     import .Utils: sort_points
 
     export fitPWL
@@ -68,7 +68,7 @@ module Fit
         distance (scaled by `β`).
 
         The interpolated curve can be:
-            - PiecewiseLinear (`curve_fn=:PiecewiseLinear`)
+            - Bezier (`curve_fn=:Bezier`)
             - B-spline (`curve_fn=:BSpline`)
 
         `kwargs...` gets passed to the curve function.

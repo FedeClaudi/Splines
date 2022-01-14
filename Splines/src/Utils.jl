@@ -5,7 +5,7 @@ module Utils
     include("Types.jl")
     include("Geometry.jl")
 
-    import .Types: Points, asPoints
+    import .Types: Points, asPoints, Knots
     import .Geometry: distances
 
 
@@ -51,7 +51,43 @@ module Utils
     end
 
 
+    # --------------------------- knots initialization --------------------------- #
+    """
+        uniform(n, d)
 
+    Defines d+n+1 uniform knots ∈[0,1] for b-spline interpolation. 
+    For i ∈ 0:n+d+1:
+        if i ≤ d: k=0
+        if d+1 ≤ i ≤ n: k=(i-d)/(n+1-d)
+        else: k = 1
+
+    See: https://www.geometrictools.com/Documentation/BSplineCurveLeastSquaresFit.pdf
+    """
+    function uniform(n::Int, d::Int)::Knots
+        knots = zeros(n+d+1+1)  # second 1 is because start from 0
+        for i in 0:n+d+1
+            if i ≤ d
+                knots[i+1] = 0
+            elseif (d+1) ≤ i ≤ n
+                knots[i+1] = (i-d)/(n+1-d)
+            else
+                knots[i+1] = 1
+            end
+        end
+        return knots
+    end
+
+
+    """
+        periodic(n, d)
+
+    Defines d+n+1 periodic knots ∈[0,1] for b-spline interpolation. 
+
+    See: https://www.geometrictools.com/Documentation/BSplineCurveLeastSquaresFit.pdf
+    """
+    periodic(n::Int, d::Int)::Knots = map((i)->(i-d)/(n+1-d), 0:n+d+1)
+
+    
     # ---------------------------------- sorting --------------------------------- #
     """
         dropCol(X::AbstractArray, idx::Int)

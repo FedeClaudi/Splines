@@ -6,7 +6,7 @@ using BenchmarkTools
 using Revise
 Revise.revise()
 
-import Splines: BSpline, PiecewiseLinear, Bezier, RationalBezier
+import Splines: BSpline, Bezier, RationalBezier
 
 
 """
@@ -14,7 +14,6 @@ import Splines: BSpline, PiecewiseLinear, Bezier, RationalBezier
     given a set of control points.
 
     Curves:
-        - PiecewiseLinear
         - BSpline
         - Bezier
 """
@@ -24,16 +23,12 @@ X = [[3, 1, 0] [2.5, 3, .2] [0, 4, .6] [-2.5, 3, 1] [-1, 0, 1.4] [-2.5, -2, 2] [
 
 # call each functiuon first to ensure it's compiled
 BSpline(X, d=3)
-PiecewiseLinear(X)
 Bezier(X)
 weights = ones(size(X, 2))
 weights[3] = -1
 RationalBezier(X, weights)
 
 # benchmark
-# @info "Benchmarking piecewise linear"
-# display(@benchmark PiecewiseLinear(X))
-
 # @info "Benchmarking B spline"
 # display(@benchmark BSpline(X, d=3))
 
@@ -45,14 +40,11 @@ RationalBezier(X, weights)
 
 
 # time
-@info "Benchmarking piecewise linear"
-@btime PiecewiseLinear(X); print("\n")
-
 @info "Benchmarking B spline"
 @btime BSpline(X, d=3); print("\n")
 
-@info "Benchmarking Bezier"
-@btime Bezier(X); print("\n")
+# @info "Benchmarking Bezier"
+# @btime Bezier(X); print("\n")
 
-@info "Benchmarking Rational Bezier"
-@btime Bezier(X); print("\n")
+# @info "Benchmarking Rational Bezier"
+# @btime Bezier(X); print("\n")

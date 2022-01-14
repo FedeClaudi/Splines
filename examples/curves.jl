@@ -6,7 +6,7 @@ using PlotlyJS
 using Revise
 Revise.revise()
 
-import Splines: BSpline, PiecewiseLinear, Bezier, RationalBezier
+import Splines: BSpline, Bezier, RationalBezier
 
 
 """
@@ -14,7 +14,6 @@ import Splines: BSpline, PiecewiseLinear, Bezier, RationalBezier
     given a set of control points.
 
     Curves:
-        - PiecewiseLinear
         - BSpline
         - Bezier
 """
@@ -24,9 +23,6 @@ X = [[3, 1, 0] [2.5, 3, .2] [0, 4, .6] [-2.5, 3, 1] [-1, 0, 1.4] [-2.5, -2, 2] [
 
 # spline curve of 3d degree
 spline = BSpline(X, d=3)
-
-# piecewise linear curve
-pwl = PiecewiseLinear(X)
 
 # Bezier curve
 bezier = Bezier(X)
@@ -50,16 +46,13 @@ display(plot([
         ), name="nodes"
     ),
     scatter(x=spline.points[1, :], y=spline.points[2, :], z=spline.points[3, :], mode="lines", type="scatter3d",
-            line = attr(color="#D81B60", width=12), name="spline"),
-
-    scatter(x=pwl.points[1, :], y=pwl.points[2, :], z=pwl.points[3, :], mode="lines", type="scatter3d", 
-            line = attr(color="#546E7A", width=12), name="PWL"),
+            line = attr(color="#D81B60", width=12), name=spline.name),
 
     scatter(x=bezier.points[1, :], y=bezier.points[2, :], z=bezier.points[3, :], mode="lines", type="scatter3d",
-            line = attr(color="#F4511E", width=12), name="bezier"),
+            line = attr(color="#F4511E", width=12), name=bezier.name),
 
     scatter(x=rbezier.points[1, :], y=rbezier.points[2, :], z=rbezier.points[3, :], mode="lines", type="scatter3d",
-            line = attr(color="blue", width=12), name="Rational bezier"),
+            line = attr(color="blue", width=12), name=rbezier.name),
 ],  Layout(
     scene=attr(        
 
