@@ -49,7 +49,7 @@ module Visuals
                 z=z(curve.points), 
                 mode=mode, 
                 type=_type,
-                line = attr(color=color, width=12), 
+                line = attr(color=color, width=width), 
                 name=curve.name
             )
     end
@@ -58,17 +58,17 @@ module Visuals
             nodes::AbstractArray; 
             color::String="black"
         )
-        N = size(nodes, 1)
-        if N == 3
+        N = ndims(nodes)
+        if size(nodes, 1) == 3
             _type = "scatter3d"
         else
             _type = "scatter"
         end
 
         scatter(
-            x=x(nodes), 
-            y=y(nodes), 
-            z=z(nodes), 
+            x= (N==2) ? x(nodes) : vec(x(nodes)), 
+            y= (N==2) ? y(nodes) : vec(y(nodes)), 
+            z= (N==2) ? z(nodes) : vec(z(nodes)), 
             mode="markers", 
             type=_type,     
             marker=attr(
@@ -81,7 +81,7 @@ module Visuals
     end
 
 
-    function plot_surface(surf)
+    function plot_surface(surf; with_points::Bool=true)
         srf = surface(
             x=x(surf.points), 
             y=y(surf.points), 
@@ -89,6 +89,10 @@ module Visuals
             name=surf.name,
             showscale=false
             )
+
+        if with_points == false
+            return srf
+        end
 
         sct = scatter(
             x=vec(x(surf.points)), 

@@ -17,17 +17,18 @@ Spline interpolation in Julia
   - [ ] piecewise linear is not parametrized!
 - [x] add methods to evalute curves at a single parmtere value
 - [ ] compute curve geometry (length, curvature etc...)
-- [ ] consider mergin Bezier with RationalBezier and BSpline with rational BSpline (and make rational BSpline)
+- [ ] consider mergin bezier with rational_bezier and bspline with rational bspline (and make rational bspline)
 
-- [ ] Two dimensional splines
-  - [ ] Bezier surface
+- [ ] Two dimensional splines (missing docstrings)
+  - [x] bezier surface
+  - [x] bspline surf
   - [ ] NURBS
 
 - [ ] Generalized n-dim splines
 
 # speed
 - [ ] why is PWL so slow to optimize first round?
-- [X] improve BSpline in-place versino
+- [X] improve bspline in-place versino
 
 # tests
 - [x] test piecewise linear on 3D and > 3D 

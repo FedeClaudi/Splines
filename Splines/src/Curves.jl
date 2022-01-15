@@ -8,13 +8,13 @@ module Curves
     import .Utils: ν, init_curve, prep_spline_parameters, uniform, periodic
     import .Polynomials: N, bernstein
 
-    export BSpline, Bezier, Bezier!, RationalBezier, RationalBezier!
+    export bspline, bezier, bezier!, rational_bezier, rational_bezier!, rational_bspline, rational_bspline!
 
     # ---------------------------------------------------------------------------- #
     #                                   B-SPLINE                                   #
     # ---------------------------------------------------------------------------- #
     """
-        BSpline(X; d, [δt=0.01, knots_type=:uniform])
+        bspline(X; d, [δt=0.01, knots_type=:uniform])
 
     Computes the b-spline of degree 'd' given a set of control nodes (d x N, of type ::Points).
     The paramtert 'δt' specifies how densly to sample the parameter interval τ=[0,1] (i.e. how many
@@ -25,25 +25,25 @@ module Curves
 
         `S(t) = ∑ᵢⁿ Nᵢ(t)Xᵢ`
     """
-    function BSpline(nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Curve
-        BSpline!(init_curve(nodes, δt), nodes; d=d, δt=δt, knots_type=knots_type, closed=closed)
+    function bspline(nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Curve
+        bspline!(init_curve(nodes, δt), nodes; d=d, δt=δt, knots_type=knots_type, closed=closed)
     end
 
     """
-        BSpline(t; nodes, d, knots)
+        bspline(t; nodes, d, knots)
 
-    Evaluate a BSpline function at a parameter value t
+    Evaluate a bspline function at a parameter value t
     """
-    function BSpline(t::Number; nodes::Points, d::Int, knots::Knots)
-        sum(N(τ; k=knots, i=i, d=d)' .* nodes[:, i+1], 0:ν(nodes))
+    function bspline(t::Number; nodes::Points, d::Int, knots::Knots)
+        sum((i) -> N(t; k=knots, i=i, d=d)' .* nodes[:, i+1], 0:ν(nodes))
     end
 
     """
-        In place implementation of BSpline function. See `BSpline`
+        In place implementation of bspline function. See `bspline`
     """
-    function BSpline!(curve_points::Points, nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Curve
+    function bspline!(curve_points::Points, nodes::Points; d::Int, δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)::Curve
         # prep
-        nodes, ndim, n, τ = prep_spline_parameters(nodes, δt, closed)
+        nodes, n, τ = prep_spline_parameters(nodes, δt, closed)
         k = eval(:($knots_type($n, $d)))  # initialize knots with the desired method
 
         # compute spline
@@ -55,76 +55,127 @@ module Curves
             nodes,
             τ,
             curve_points,
-            t -> BSpline(t; nodes=nodes, d=d, knots=k)
+            t -> bspline(t; nodes=nodes, d=d, knots=k)
         )
     end
 
+    
+
     # ---------------------------------------------------------------------------- #
-    #                                    Bezier                                    #
+    #                                  NURB curve                                  #
+    # ---------------------------------------------------------------------------- #
+
+    function rational_bspline(
+                    nodes::Points, 
+                    weights::Points; 
+                    d::Int, 
+                    δt::Float64=.01, 
+                    knots_type::Symbol=:uniform, 
+                    closed::Bool=false
+                )::Curve
+        rational_bspline!(init_curve(nodes, δt), nodes, weights; d=d, δt=δt, knots_type=knots_type, closed=closed)
+    end
+
+    function rational_bspline(t::Number; nodes::Points, weights::Points, d::Int, knots::Knots)
+        num = sum((i) -> N(t; k=knots, i=i, d=d)' .* nodes[:, i+1] .* weights[i+1], 0:ν(nodes))
+        den = sum((i) -> N(t; k=knots, i=i, d=d)' .* weights[i+1], 0:ν(nodes)) + eps()
+        return num /den
+    end
+
+    function rational_bspline!(
+            curve_points::Points,
+            nodes::Points,
+            weights::Points;
+            d::Int,
+            δt::Float64=.01,
+            knots_type::Symbol=:uniform,
+            closed::Bool=false
+        )::Curve
+        # prep
+        nodes, n, τ = prep_spline_parameters(nodes, δt, closed)
+        k = eval(:($knots_type($n, $d)))  # initialize knots with the desired method
+
+        # compute spline
+        Bₙ(i) = N(τ; k=k, i=i, d=d)' .* nodes[:, i+1] .* weights[i+1]
+        Bₘ(i) =  N(τ; k=k, i=i, d=d)' .* weights[i+1]
+        curve_points += sum(Bₙ, 0:n) ./ sum(Bₘ, 0:n)
+
+        return Curve(
+            "NURB curve (d=$d)",
+            nodes,
+            τ,
+            curve_points,
+            t -> rational_bspline(t; nodes=nodes, weights=weights, d=d, knots=k)
+        )
+    end
+
+
+    # ---------------------------------------------------------------------------- #
+    #                                    bezier                                    #
     # ---------------------------------------------------------------------------- #
 
 
     """
-        Bezier(nodes::Points;   δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)
+        bezier(nodes::Points;   δt::Float64=.01, knots_type::Symbol=:uniform, closed::Bool=false)
 
-    Compute the Bezier curve given a set of `nodes` (d x N array of points)
+    Compute the bezier curve given a set of `nodes` (d x N array of points)
     """
-    Bezier(nodes::Points; δt::Float64=.01, closed::Bool=false)::Curve = Bezier!(
+    bezier(nodes::Points; δt::Float64=.01, closed::Bool=false)::Curve = bezier!(
                                             init_curve(nodes, δt), nodes; δt=δt, closed=closed
                                         )
 
     """
-        Bezier(t, X)
+        bezier(t, X)
 
-    Evaluate a Bezier function at a given parameter value `t` and given a set
+    Evaluate a bezier function at a given parameter value `t` and given a set
     of control nodes `X`
     """
-    Bezier(t::Number; nodes::Points) = sum(
+    bezier(t::Number; nodes::Points) = sum(
         (i)->bernstein(t; i=i, n=ν(nodes))' .* nodes[:, i+1], 0:ν(nodes)
     )
 
     """
-        In place Bezier curve computation, see `Bezier` for more details.
+        In place bezier curve computation, see `bezier` for more details.
     """
-    function Bezier!(curve_points::Points, nodes::Points; δt::Float64=.01, closed::Bool=false)::Curve
+    function bezier!(curve_points::Points, nodes::Points; δt::Float64=.01, closed::Bool=false)::Curve
         # prepare parameters
-        nodes, ndim, n, τ = prep_spline_parameters(nodes, δt, closed)
+        nodes, n, τ = prep_spline_parameters(nodes, δt, closed)
 
         # compute bezier curve
         B(i) = bernstein(τ; i=i, n=n)' .* nodes[:, i+1]
         curve_points = sum(B, 0:n)
 
         return Curve(
-            "Bezier",
+            "bezier",
             nodes,
             τ,
             curve_points,
-            (t) -> Bezier(t; nodes=nodes)
+            (t) -> bezier(t; nodes=nodes)
         )
     end
 
 
     # ---------------------------------------------------------------------------- #
-    #                                Rational Bezier                               #
+    #                                Rational bezier                               #
     # ---------------------------------------------------------------------------- #
 
     """
-        RationalBezier(nodes::Points, weights::Vector{Float64}; δt::Float64=.01, closed::Bool=false)::Points
+        rational_bezier(nodes::Points, weights::Vector{Float64}; δt::Float64=.01, closed::Bool=false)::Points
     
-    Computes a rational Bezier curve: https://en.wikipedia.org/wiki/B%C3%A9zier_curve#Rational_B%C3%A9zier_curves
-    Similar to `Bezier` but with an additional 1xN weights vector.
+    Computes a rational bezier curve: https://en.wikipedia.org/wiki/B%C3%A9zier_curve#Rational_B%C3%A9zier_curves
+    Similar to `bezier` but with an additional 1xN weights vector.
     """
-    function RationalBezier(nodes::Points, weights::Vector{Float64}; δt::Float64=.01, closed::Bool=false)::Curve
-        return RationalBezier!(init_curve(nodes, δt), nodes, weights; δt=δt, closed=closed)
+    function rational_bezier(nodes::Points, weights::Vector{Float64}; δt::Float64=.01, closed::Bool=false)::Curve
+        return rational_bezier!(init_curve(nodes, δt), nodes, weights; δt=δt, closed=closed)
     end
 
     """
-        RationalBezier(t, X)
+        rational_bezier(t, X)
 
-    Evaluate a RationalBezier function at a given parameter value `t` and given a set
+    Evaluate a rational_bezier function at a given parameter value `t` and given a set
     of control nodes `X`
     """
-    function RationalBezier(t::Number; nodes::Points, weights::Vector{Float64})
+    function rational_bezier(t::Number; nodes::Points, weights::Vector{Float64})
         n = ν(nodes) # number of control points
 
         numerator(i) = bernstein(t; i=i, n=n)' .* nodes[:, i+1] .* weights[i+1]
@@ -133,22 +184,22 @@ module Curves
     end
 
     """
-        In-place rational Bezier curve computation, see `RationalBezier`
+        In-place rational bezier curve computation, see `rational_bezier`
     """
-    function RationalBezier!(curve_points::Points, nodes::Points, weights::Vector{Float64}; δt::Float64=.01, closed::Bool=false)::Curve
+    function rational_bezier!(curve_points::Points, nodes::Points, weights::Vector{Float64}; δt::Float64=.01, closed::Bool=false)::Curve
         # prepare parameters
-        nodes, ndim, n, τ = prep_spline_parameters(nodes, δt, closed)
+        nodes, n, τ = prep_spline_parameters(nodes, δt, closed)
 
         numerator(i) = bernstein(τ; i=i, n=n)' .* nodes[:, i+1] .* weights[i+1]
         denominator(i) = bernstein(τ; i=i, n=n)' .* weights[i+1]
         curve_points = sum(numerator, 0:n) ./ sum(denominator, 0:n)
 
         return Curve(
-            "RationalBezier",
+            "rational_bezier",
             nodes,
             τ,
             curve_points,
-            (t) -> RationalBezier(t; nodes=nodes, weights=weights)
+            (t) -> rational_bezier(t; nodes=nodes, weights=weights)
         )
     end
 

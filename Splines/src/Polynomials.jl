@@ -1,6 +1,6 @@
 """
     Polynomials functions for spline interpolation: basis functions for b-splines
-    and bernstein polynomials for Bezier curves.
+    and bernstein polynomials for bezier curves.
 
     Most polynomials have two implementations: one in which the polynomial is 
     computed over the entier parameter range, the other for evaluating the 
@@ -24,8 +24,24 @@ module Polynomials
     The additional "+1" index in the code is because in the bspline maths 
     the knots are indexed starting from 0.
     """
-    N_0(τ::Vector{Float64}; k::Knots, i::Int=0)::Vector{Float64} = (k[i+1] .<= τ .< k[i+2])
-    N_0(t::Number; k::Knots, i::Int=0)::Number = (k[i+1] <= t < k[i+2]) ? 1 : 0
+    function N_0(τ; k::Knots, i::Int=0)
+        if i+2 < length(k)
+            return k[i+1] .<= τ .< k[i+2]
+        else
+            return k[i+1] .<= τ .<= k[i+2]
+        end
+    end
+
+    """
+        ω(τ, j)
+
+    Function used within N_D to compute the factors for the linear interpolation
+    of the two lover level basis functions
+    """
+    function ω(τ, j, d, k)
+        Δ = k[j+d]-k[j]
+        @. Δ!=0 ? (τ - k[j])/Δ : zero(τ)
+    end
 
     """
         N_D(τ, k; i=0, d=0)
@@ -38,28 +54,8 @@ module Polynomials
     The "j=i+1" index in the code is because in the bspline maths 
     the knots are indexed starting from 0.
     """
-    function N_D(τ::Vector{Float64}; k::Knots, i::Int=0, d::Int=0)::Vector{Float64}
-        j = i + 1
-
-        kⱼ = k[j]
-        k̂ = k[j + d + 1]
-
-        α = (τ .- kⱼ)/(k[j+d] - kⱼ + eps()) 
-        β = (k̂ .- τ)/(k̂ - k[j+1] + eps())
-        
-        α .* N(τ; k=k, i=i, d=d-1) .+ β .* N(τ; k=k, i=i+1, d=d-1)
-    end
-
-    function N_D(t::Number; k::Knots, i::Int=0, d::Int=0)::Number
-        j = i + 1
-
-        kⱼ = k[j]
-        k̂ = k[j + d + 1]
-
-        α = (t - kⱼ)/(k[j+d] - kⱼ + eps()) 
-        β = (k̂ - t)/(k̂ - k[j+1] + eps())
-        
-        α * N(t; k=k, i=i, d=d-1) + β .* N(t; k=k, i=i+1, d=d-1)
+    function N_D(τ; k::Knots, i::Int=0, d::Int=0)
+        ω(τ, i+1, d, k) .* N(τ; k=k, i=i, d=d-1) .+ (1 .- ω(τ, i+1+1, d, k)) .* N(τ; k=k, i=i+1, d=d-1)
     end
 
     """
@@ -68,9 +64,7 @@ module Polynomials
     B-spline basis function for the i-th knot and d-th order.
     Calls either N_0 or N_D depending on the value of d.
     """
-    N(τ::Vector{Float64}; k::Knots, i::Int=0, d::Int=0)::Vector{Float64} = (d == 0) ? N_0(τ; k, i=i) : N_D(τ; k, i=i, d=d)
-    N(t::Number; k::Knots, i::Int=0, d::Int=0)::Number = (d == 0) ? N_0(t; k, i=i) : N_D(t; k, i=i, d=d)
-
+    N(τ; k::Knots, i::Int=0, d::Int=0) = (d == 0) ? N_0(τ; k, i=i) : N_D(τ; k, i=i, d=d)
 
 
     # ---------------------------------------------------------------------------- #
@@ -82,24 +76,7 @@ module Polynomials
     Evaluate the bernstein polynomial at parameter value `t` given the index `i` and the number
     of polynomials `n`.
     """
-    bernstein(t::Number; i::Int, n::Int)::Float64 = binomial(n, i) * t^i * (1 - t)^(n-i) 
+    bernstein(τ; i::Int, n::Int) = @. binomial(n, i) * τ^i * (1 - τ)^(n-i) 
 
-    """
-        bernstein(τ::Vector{Float64}; i::Int, n::Int)::Vector{Float64}
-
-    Evaluate the polynomial over an entire parametr range: `τ = 0:δt:1`
-    """
-    bernstein(τ::AbstractArray; i::Int, n::Int)::Vector{Float64} = @. binomial(n, i) * τ^i * (1 - τ)^(n-i) 
-
-
-    """
-        bernstein(τ::AbstractArray; i::AbstractArray, n::Int)
-    
-    Evaluate the polynomial over an entire parameter range and for all degrees `i ∈ [0, n]``
-    """
-    function Bernstein2(τ::AbstractArray; i::AbstractArray, n::Int)::AbstractArray
-        binom = [binomial(n, j) for j in i]'
-        @. binom * τ^(i') * (1 - τ)^(n-i)'
-    end
 
 end

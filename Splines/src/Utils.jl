@@ -32,10 +32,9 @@ module Utils
 
     # ------------------------- curve creation helper fns ------------------------ #
     """
-        Get the order of a curve (n-1) given a set of n nodes
+        Get the number of nodes (given either a d x N or d x N x M input array).
     """
-    ν(X::Points) = size(X, 2)-1
-
+    ν(X::AbstractArray) = ndims(X)==2 ? size(X, 2) - 1 : size(X)[2:end] .- 1
 
     """
         Creates an empty MMatrix with the same dimensions as the curve generate 
@@ -43,7 +42,7 @@ module Utils
     """
     function init_curve(nodes::Points, δt::Float64)::Points
         ndim = size(nodes, 1)  # number of dimensions
-        nt = Int(1/δt)  # number of parameter steps
+        nt = Int(1/δt) + 1  # number of parameter steps
         return @MMatrix zeros(ndim, nt)
     end
 
@@ -64,14 +63,23 @@ module Utils
             nodes = [nodes nodes[:, 1]] # repeat first control point to make it loop
         end
 
-        ndim = size(nodes, 1)
         n = ν(nodes)
-        τ = Array(0:δt:1-δt)  # parameter range
+        τ = Array(0:δt:1)  # parameter range
 
-        return nodes, ndim, n, τ
+        return nodes, n, τ
     end
 
+    # ---------------------------------- Surface --------------------------------- #
 
+    function prep_surface_parameters(nodes::Points, δt::Float64)
+        # get parameters
+        n, m  = size(nodes)[1+1:end] .- 1
+        
+        τ = 0:δt:1
+        T = length(τ)
+
+        return n, m, τ, T
+    end
     # --------------------------- knots initialization --------------------------- #
     """
         uniform(n, d)
@@ -85,6 +93,10 @@ module Utils
     See: https://www.geometrictools.com/Documentation/BSplineCurveLeastSquaresFit.pdf
     """
     function uniform(n::Int, d::Int)::Knots
+        if d > n
+            @warn "When using B-splines, the degree should be < the number of control nodes"
+        end
+
         knots = zeros(n+d+1+1)  # second 1 is because start from 0
         for i in 0:n+d+1
             if i ≤ d
@@ -106,7 +118,12 @@ module Utils
 
     See: https://www.geometrictools.com/Documentation/BSplineCurveLeastSquaresFit.pdf
     """
-    periodic(n::Int, d::Int)::Knots = map((i)->(i-d)/(n+1-d), 0:n+d+1)
+    function periodic(n::Int, d::Int)::Knots
+        if d > n
+            @warn "When using B-splines, the degree should be < the number of control nodes"
+        end
+        map((i)->(i-d)/(n+1-d), 0:n+d+1)
+    end
 
     
     # ---------------------------------- sorting --------------------------------- #

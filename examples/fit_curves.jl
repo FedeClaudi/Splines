@@ -29,7 +29,7 @@ data = Splines.TestData.circle3D(σ=.1, δ=.001)
 # fit
 nodes_init, nodes_optim, curve, opt_res = fit(
             data, 
-            :Bezier;  # type of curve to fit: :PiecewiseLinear, :BSpline, :Bezier
+            :bezier;  # type of curve to fit: :PiecewiseLinear, :bspline, :bezier
             n=20, # number of nodes
             closed=true,
             α=0.1, β=5.0,

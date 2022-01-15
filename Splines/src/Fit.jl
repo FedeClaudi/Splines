@@ -13,7 +13,7 @@ module Fit
 
     import .Types: Point, Points
     import .Geometry as gm
-    import .Curves: BSpline, BSpline!, Bezier, Bezier!
+    import .Curves: bspline, bspline!, bezier, bezier!
     import .Utils: sort_points
 
     export fitPWL
@@ -68,8 +68,8 @@ module Fit
         distance (scaled by `β`).
 
         The interpolated curve can be:
-            - Bezier (`curve_fn=:Bezier`)
-            - B-spline (`curve_fn=:BSpline`)
+            - bezier (`curve_fn=:bezier`)
+            - B-spline (`curve_fn=:bspline`)
 
         `kwargs...` gets passed to the curve function.
     """

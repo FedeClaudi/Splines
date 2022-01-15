@@ -6,7 +6,7 @@ Pkg.activate("Splines")
 using PlotlyJS
 using Revise
 
-import Splines: BSpline
+import Splines: bspline
 
 """
     Fitting splines in R³ to create interpolations in RGB color space.
@@ -27,7 +27,7 @@ g_nodes = [[0, 0, 0] [0, 0, 150] [0, 0, 255] [0, 0, 255]]
 
 lines = []
 for points in [nodes, r_nodes, b_nodes, g_nodes]
-    spline = BSpline(points, d=3; δt=0.005)
+    spline = bspline(points, d=3; δt=0.005)
     plotted_line = scatter(
         x=spline.points[1, :],
         y=spline.points[2, :],
