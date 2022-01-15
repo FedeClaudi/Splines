@@ -8,6 +8,27 @@ module Utils
     import .Types: Points, asPoints, Knots
     import .Geometry: distances
 
+    # -------------------------------- coordinates ------------------------------- #
+    """
+        x(X)
+
+    Select the first coordinate from an array d x N ( x M)
+    """
+    x(X::Points) = ndims(X)==2 ? X[1, :] : X[1, :, :]
+
+    """
+        y(X)
+        
+    Select the second coordinate from an array d x N ( x M)
+    """
+    y(X::Points) = ndims(X)==2 ? X[2, :] : X[2, :, :]
+
+    """
+        z(X)
+        
+    Select the third coordinate from an array d x N ( x M)
+    """
+    z(X::Points) = ndims(X)==2 ? X[3, :] : X[3, :, :]
 
     # ------------------------- curve creation helper fns ------------------------ #
     """

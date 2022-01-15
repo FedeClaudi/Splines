@@ -4,9 +4,9 @@ module Curves
     include("Types.jl")
     include("Polynomials.jl")
 
-    import .Types: Point, Points, Curve, Knots
+    using .Types
     import .Utils: ν, init_curve, prep_spline_parameters, uniform, periodic
-    import .Polynomials: N, Bernstein
+    import .Polynomials: N, bernstein
 
     export BSpline, Bezier, Bezier!, RationalBezier, RationalBezier!
 
@@ -52,6 +52,7 @@ module Curves
 
         return Curve(
             "Bspline (d=$d)",
+            nodes,
             τ,
             curve_points,
             t -> BSpline(t; nodes=nodes, d=d, knots=k)
@@ -79,7 +80,7 @@ module Curves
     of control nodes `X`
     """
     Bezier(t::Number; nodes::Points) = sum(
-        (i)->Bernstein(t; i=i, n=ν(nodes))' .* nodes[:, i+1], 0:ν(nodes)
+        (i)->bernstein(t; i=i, n=ν(nodes))' .* nodes[:, i+1], 0:ν(nodes)
     )
 
     """
@@ -90,11 +91,12 @@ module Curves
         nodes, ndim, n, τ = prep_spline_parameters(nodes, δt, closed)
 
         # compute bezier curve
-        B(i) = Bernstein(τ; i=i, n=n)' .* nodes[:, i+1]
+        B(i) = bernstein(τ; i=i, n=n)' .* nodes[:, i+1]
         curve_points = sum(B, 0:n)
 
         return Curve(
             "Bezier",
+            nodes,
             τ,
             curve_points,
             (t) -> Bezier(t; nodes=nodes)
@@ -125,8 +127,8 @@ module Curves
     function RationalBezier(t::Number; nodes::Points, weights::Vector{Float64})
         n = ν(nodes) # number of control points
 
-        numerator(i) = Bernstein(t; i=i, n=n)' .* nodes[:, i+1] .* weights[i+1]
-        denominator(i) = Bernstein(t; i=i, n=n)' .* weights[i+1]
+        numerator(i) = bernstein(t; i=i, n=n)' .* nodes[:, i+1] .* weights[i+1]
+        denominator(i) = bernstein(t; i=i, n=n)' .* weights[i+1]
         return sum(numerator, 0:n) ./ sum(denominator, 0:n)
     end
 
@@ -137,12 +139,13 @@ module Curves
         # prepare parameters
         nodes, ndim, n, τ = prep_spline_parameters(nodes, δt, closed)
 
-        numerator(i) = Bernstein(τ; i=i, n=n)' .* nodes[:, i+1] .* weights[i+1]
-        denominator(i) = Bernstein(τ; i=i, n=n)' .* weights[i+1]
+        numerator(i) = bernstein(τ; i=i, n=n)' .* nodes[:, i+1] .* weights[i+1]
+        denominator(i) = bernstein(τ; i=i, n=n)' .* weights[i+1]
         curve_points = sum(numerator, 0:n) ./ sum(denominator, 0:n)
 
         return Curve(
             "RationalBezier",
+            nodes,
             τ,
             curve_points,
             (t) -> RationalBezier(t; nodes=nodes, weights=weights)

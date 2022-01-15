@@ -43,8 +43,8 @@ RationalBezier(X, weights)
 @info "Benchmarking B spline"
 @btime BSpline(X, d=3); print("\n")
 
-# @info "Benchmarking Bezier"
-# @btime Bezier(X); print("\n")
+@info "Benchmarking Bezier"
+@btime Bezier(X); print("\n")
 
-# @info "Benchmarking Rational Bezier"
-# @btime Bezier(X); print("\n")
+@info "Benchmarking Rational Bezier"
+@btime Bezier(X); print("\n")

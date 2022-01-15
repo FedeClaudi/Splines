@@ -20,6 +20,10 @@ Spline interpolation in Julia
 - [ ] consider mergin Bezier with RationalBezier and BSpline with rational BSpline (and make rational BSpline)
 
 - [ ] Two dimensional splines
+  - [ ] Bezier surface
+  - [ ] NURBS
+
+- [ ] Generalized n-dim splines
 
 # speed
 - [ ] why is PWL so slow to optimize first round?

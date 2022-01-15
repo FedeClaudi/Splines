@@ -1,8 +1,115 @@
 module Visuals
     using PlotlyJS
 
-    export plot_fit_results
+    include("Utils.jl")
+    include("Types.jl")
+
+    import .Utils: x, y, z
+    using .Types
+
+
+    export plot_fit_results, plot_curve, plot_nodes, plot_surface
     
+    """
+        plot_curve(
+            curve::Curve; 
+            as_scatter::Bool=false, 
+            color::String="black",
+            width::Number=10,
+            )
+
+    Creates a scatter or line representation of a 1 
+    dimensional curve in N dimensional space
+    """
+    function plot_curve(
+            curve;
+            as_scatter::Bool=false, 
+            color::String="black",
+            width::Number=10,
+            )
+
+            # prep params
+            N = size(curve.points, 1)
+            if N == 3
+                _type = "scatter3d"
+            else
+                _type = "scatter"
+            end
+
+            if as_scatter
+                mode= "marker"
+            else
+                mode = "lines"
+            end
+
+            # plot curve
+            scatter(
+                x=x(curve.points), 
+                y=y(curve.points), 
+                z=z(curve.points), 
+                mode=mode, 
+                type=_type,
+                line = attr(color=color, width=12), 
+                name=curve.name
+            )
+    end
+
+    function plot_nodes(
+            nodes::AbstractArray; 
+            color::String="black"
+        )
+        N = size(nodes, 1)
+        if N == 3
+            _type = "scatter3d"
+        else
+            _type = "scatter"
+        end
+
+        scatter(
+            x=x(nodes), 
+            y=y(nodes), 
+            z=z(nodes), 
+            mode="markers", 
+            type=_type,     
+            marker=attr(
+                    size=8,
+                    color=color,
+                    opacity=1,
+                ), 
+            name="nodes"
+            )
+    end
+
+
+    function plot_surface(surf)
+        srf = surface(
+            x=x(surf.points), 
+            y=y(surf.points), 
+            z=z(surf.points), 
+            name=surf.name,
+            showscale=false
+            )
+
+        sct = scatter(
+            x=vec(x(surf.points)), 
+            y=vec(y(surf.points)), 
+            z=vec(z(surf.points)), 
+            mode="markers", 
+            type="scatter3d",
+            marker=attr(
+                    size=1,
+                    color="black",
+                ),
+            name=surf.name,
+            )
+
+        return [srf, sct]
+
+
+    end
+
+
+
     function plot_fit_results(data, curve, nodes_optim, nodes_init)
         display(plot(
             [

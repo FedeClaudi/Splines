@@ -1,6 +1,6 @@
 """
     Polynomials functions for spline interpolation: basis functions for b-splines
-    and Bernstein polynomials for Bezier curves.
+    and bernstein polynomials for Bezier curves.
 
     Most polynomials have two implementations: one in which the polynomial is 
     computed over the entier parameter range, the other for evaluating the 
@@ -77,13 +77,29 @@ module Polynomials
     #                             BERNSTEIN POLYNOMIALS                            #
     # ---------------------------------------------------------------------------- #
     """
-        Bernstein(t::Float64; i::Int, n::Int)
+        bernstein(t::Float64; i::Int, n::Int)
 
-    Evaluate the Bernstein polynomial at parameter value `t` given the index `i` and the number
+    Evaluate the bernstein polynomial at parameter value `t` given the index `i` and the number
     of polynomials `n`.
     """
-    Bernstein(τ::Vector{Float64}; i::Int, n::Int)::Vector{Float64} = @. binomial(n, i) * τ^i * (1 - τ)^(n-i) 
+    bernstein(t::Number; i::Int, n::Int)::Float64 = binomial(n, i) * t^i * (1 - t)^(n-i) 
 
-    Bernstein(t::Number; i::Int, n::Int)::Float64 = binomial(n, i) * t^i * (1 - t)^(n-i) 
+    """
+        bernstein(τ::Vector{Float64}; i::Int, n::Int)::Vector{Float64}
+
+    Evaluate the polynomial over an entire parametr range: `τ = 0:δt:1`
+    """
+    bernstein(τ::AbstractArray; i::Int, n::Int)::Vector{Float64} = @. binomial(n, i) * τ^i * (1 - τ)^(n-i) 
+
+
+    """
+        bernstein(τ::AbstractArray; i::AbstractArray, n::Int)
+    
+    Evaluate the polynomial over an entire parameter range and for all degrees `i ∈ [0, n]``
+    """
+    function Bernstein2(τ::AbstractArray; i::AbstractArray, n::Int)::AbstractArray
+        binom = [binomial(n, j) for j in i]'
+        @. binom * τ^(i') * (1 - τ)^(n-i)'
+    end
 
 end

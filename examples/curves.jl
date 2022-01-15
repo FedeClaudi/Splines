@@ -7,6 +7,7 @@ using Revise
 Revise.revise()
 
 import Splines: BSpline, Bezier, RationalBezier
+import Splines.Visuals: plot_curve, plot_nodes
 
 
 """
@@ -36,40 +37,15 @@ weights[end-1] = -1
 rbezier = RationalBezier(X, weights)
 
 # plot
-display(plot([
-    scatter(x=X[1, :], y=X[2, :], z=X[3, :], mode="markers", type="scatter3d",     
-        marker=attr(
-            size=8,
-            color="black",
-            edgecolor="black",
-            opacity=1,
-        ), name="nodes"
-    ),
-    scatter(x=spline.points[1, :], y=spline.points[2, :], z=spline.points[3, :], mode="lines", type="scatter3d",
-            line = attr(color="#D81B60", width=12), name=spline.name),
-
-    scatter(x=bezier.points[1, :], y=bezier.points[2, :], z=bezier.points[3, :], mode="lines", type="scatter3d",
-            line = attr(color="#F4511E", width=12), name=bezier.name),
-
-    scatter(x=rbezier.points[1, :], y=rbezier.points[2, :], z=rbezier.points[3, :], mode="lines", type="scatter3d",
-            line = attr(color="blue", width=12), name=rbezier.name),
-],  Layout(
-    scene=attr(        
-
-        xaxis=attr(
-            nticks=3,
-
-        ),
-        yaxis=attr(
-            nticks=3,
-
-        ),
-        zaxis=attr(
-            nticks=3,
-
-        ),
-    ),
-)))
+display(
+    plot(
+        [   
+            plot_nodes(X),
+            plot_curve(spline; color="#D81B60"),
+            plot_curve(bezier; color="#F4511E"),
+            plot_curve(rbezier; color="#blue"),
+    ],
+))
 @info "Done!"
 
 
