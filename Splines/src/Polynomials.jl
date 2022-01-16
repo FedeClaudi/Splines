@@ -7,9 +7,6 @@
     polynomial at a single parameter value.
 """
 module Polynomials
-    include("Types.jl")
-
-    import .Types: Point, Points, Knots
 
     # ---------------------------------------------------------------------------- #
     #                           B-Spline BASIS FUNCTIONS                           #
@@ -24,7 +21,7 @@ module Polynomials
     The additional "+1" index in the code is because in the bspline maths 
     the knots are indexed starting from 0.
     """
-    function N_0(τ; k::Knots, i::Int=0)
+    function N_0(τ; k::AbstractArray, i::Int=0)
         if i+2 < length(k)
             return k[i+1] .<= τ .< k[i+2]
         else
@@ -54,7 +51,7 @@ module Polynomials
     The "j=i+1" index in the code is because in the bspline maths 
     the knots are indexed starting from 0.
     """
-    function N_D(τ; k::Knots, i::Int=0, d::Int=0)
+    function N_D(τ; k::AbstractArray, i::Int=0, d::Int=0)
         ω(τ, i+1, d, k) .* N(τ; k=k, i=i, d=d-1) .+ (1 .- ω(τ, i+1+1, d, k)) .* N(τ; k=k, i=i+1, d=d-1)
     end
 
@@ -64,7 +61,7 @@ module Polynomials
     B-spline basis function for the i-th knot and d-th order.
     Calls either N_0 or N_D depending on the value of d.
     """
-    N(τ; k::Knots, i::Int=0, d::Int=0) = (d == 0) ? N_0(τ; k, i=i) : N_D(τ; k, i=i, d=d)
+    N(τ; k::AbstractArray, i::Int=0, d::Int=0) = (d == 0) ? N_0(τ; k, i=i) : N_D(τ; k, i=i, d=d)
 
 
     # ---------------------------------------------------------------------------- #

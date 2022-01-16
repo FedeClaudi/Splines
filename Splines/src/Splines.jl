@@ -1,28 +1,18 @@
 module Splines
-    include("Types.jl")
-    include("Geometry.jl")
-    include("Data.jl")
-    include("Curves.jl")
-    include("Fit.jl")
-    include("Visuals.jl")
+    include("Beziers.jl")
+    include("Maths.jl")
     include("Polynomials.jl")
-    include("Surfaces.jl")
-    include("Utils.jl")
+    include("Spline.jl")
+    include("Visuals.jl")
 
-    import .Types: Point, Points, Curve
-    import .Geometry: distances, curve_length
-    import .Curves: 
-        bspline, bspline!,
-        bezier, bezier!,
-        rational_bezier, rational_bezier!,
-        rational_bspline, rational_bspline!
-    import .TestData
-    import .Fit: fit
-    import .Visuals: plot_fit_results, plot_surface
+    import .Beziers: Bezier, ⊗
+    import .Maths: ⊗
     import .Polynomials
-    import .Surfaces: bezier_surface, bspline_surface
-    import .Utils
+    import .Spline
+    import .Visuals: plot_curve, plot_nodes, plot_surface
 
-    export Point, Points, bspline, bspline!, bezier, bezier!, fit, plot_fit_results, bezier_surface, NURBS_curve, NURBS_curve!
+    export plot_curve, plot_nodes, plot_surface 
+    export ∑, ⊗
+    export Bezier
 
-end 
+end
