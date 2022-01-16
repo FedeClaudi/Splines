@@ -15,8 +15,8 @@ import Splines.Visuals: plot_surface
 n = 8
 m = 8
 
-x̂ = (1:n) ./ n .* ones(m)'  # n x m
-ŷ = (1:m)' ./ m .* ones(n)  # n x m
+x̂ = (0:(n-1)) ./ n .* ones(m)'  # n x m
+ŷ = (0:(m-1))' ./ m .* ones(n)  # n x m
 
 ϕ₁, ϕ₂ = 1, 1  # sines frequency
 ẑ = (sin.(ϕ₁ .* range(0, stop=pi, length=m)) .* sin.(ϕ₂ .* range(0, stop=pi, length=n))')'  # n x m

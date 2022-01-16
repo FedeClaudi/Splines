@@ -56,7 +56,9 @@ module Visuals
 
     function plot_nodes(
             nodes::AbstractArray; 
-            color::String="black"
+            color::String="black",
+            name="nodes",
+            knot_size::Number=8,
         )
         N = ndims(nodes)
         if size(nodes, 1) == 3
@@ -72,11 +74,11 @@ module Visuals
             mode="markers", 
             type=_type,     
             marker=attr(
-                    size=8,
+                    size=knot_size,
                     color=color,
                     opacity=1,
                 ), 
-            name="nodes"
+            name=name
             )
     end
 

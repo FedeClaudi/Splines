@@ -29,6 +29,7 @@ Spline interpolation in Julia
 # speed
 - [ ] why is PWL so slow to optimize first round?
 - [X] improve bspline in-place versino
+- [ ] nodes should be SA
 
 # tests
 - [x] test piecewise linear on 3D and > 3D 
