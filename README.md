@@ -3,6 +3,16 @@ Spline interpolation in Julia
 
 
 ### TODO
+
+
+
+- [ ] tensor product
+  - [ ] > 2 dim?
+  - [ ] for other spliens
+- [ ] Re-implement most splines + dedicated code
+
+
+
 # dev
 - [x] piecewise interpolation: reduce allocation
 - [x] b-splines
