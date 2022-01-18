@@ -6,13 +6,13 @@ module Splines
     include("Visuals.jl")
 
     import .Beziers: Bezier, ⊗
-    import .Maths: ⊗
+    import .Maths: ⊗, dimensions
     import .Polynomials
     import .Spline
     import .Visuals: plot_curve, plot_nodes, plot_surface
 
     export plot_curve, plot_nodes, plot_surface 
-    export ∑, ⊗
+    export ∑, ⊗, dimensions
     export Bezier
 
 end

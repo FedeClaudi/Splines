@@ -79,13 +79,15 @@ module Visuals
             )
     end
 
-    function plot_surface(points; with_points::Bool=true, name::String="surface")
+    function plot_surface(points; with_points::Bool=true, name::String="surface", opacity=1.0, kwargs...)
         srf = surface(
             x=x(points), 
             y=y(points), 
             z=z(points), 
             name=name,
-            showscale=false
+            showscale=false,
+            opacity=opacity,
+            kwargs...
             )
 
         if with_points == false

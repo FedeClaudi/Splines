@@ -1,34 +1,55 @@
 
 module Maths
     using EllipsisNotation
+    using Einsum
 
-    export ∑, ⊗, ϕ!
+    export ∑, ⊗, ϕ!, dimensions
 
     # shorthand for sum operation
     ∑(fn, values) = sum(fn, values)
     
 
     """
+        ⊗(x::AbstractArray, y::AbstractArray)
+    
     Tensor product between two arrays.
+    Given x as a d x N x M... and y as a d x P x Q...
+    it returns an array of shape d x N x M .. x P x Q x ...
+    with the product of the two input arrays.
+
+    This is done by iterating over the dimension d using Einstein summatin.
+    Then each N x M... and P x Q... array is repeated/permuted to 
+    to create two N x M... x P x Q... arrays which are then summed.
     """
     function ⊗(x::AbstractArray, y::AbstractArray)::AbstractArray
         if ndims(x) == ndims(y) == 1
             return x * y'
         else
-            if ndims(x) > 2 || ndims(y) > 2
-                @warn "This is only tested with ndims=2"
-            end
+            # compute product for each Euclidean dimension
+            n_x = ndims(x) - 1
+            n_y = ndims(y) - 1
+            dimsx = dimensions(x) 
+            dimsy = dimensions(y)
 
             # initialize an array of the appropriate shape
-            n, m = size(x, 2), size(y, 2)
-            N = zeros(3, n, m)
+            N = zeros(3, dimsx..., dimsy...)
             
-            # compute product for each Euclidean dimension
-            ϕ!(N, (d)->repeat(x[d, :, :], 1, m) .+ y[d, :, :]')
+            # prepare conuts/indices for array repeats
+            counts_x = Int.([ones(n_x)... dimsy...])
+            counts_y = Int.([ones(n_y)... dimsx...])
+            dims_permutation = [collect(2:n_x+n_y)... 1]
+
+            # define two utility functions 
+            α(x) = repeat(x, counts_x...)
+            β(y) = permutedims(repeat(y, counts_y...), dims_permutation)
+
+            # @einsum N[d, ..] := α(x[d, ..]) .+ β(y[d, ..])
+            ϕ!(N, (d) -> α(x[d, ..]) .+ β(y[d, ..]))
 
             return N
         end
     end
+
 
     """
         ϕ!(X::AbstractArray, fn)
@@ -42,11 +63,22 @@ module Maths
         end
     end
 
+
     # ------------------------------ Misc.utilities ------------------------------ #
+
     """
-        Get the number of nodes (given either a d x N or d x N x M input array).
+    Gets the dimensions of an array of shape d x N x M ... ignoring
+    the first dimension that here represents the 3 cartesian coordinates.
+    E.g., d x N x M -> N x M
     """
-    nnodes(X::AbstractArray) = ndims(X)==2 ? size(X, 2) - 1 : size(X)[2:end] .- 1
+    dimensions(X::AbstractArray) =  size(X)[2:end]
+
+
+    """
+    Get the number of nodes along each dimension (given d x N x M input array
+    it returns (N-1)x(M-1)).
+    """
+    nnodes(X::AbstractArray) = ndims(X)==2 ? size(X, 2)-1 : dimensions(X) .- 1
 
 
     """

@@ -3,8 +3,7 @@ module Beziers
     include("Polynomials.jl")
     include("Maths.jl")
 
-    import StaticArrays: @SArray
-
+    
     import .Spline: AbstractBezier
     import .Polynomials: bernstein
     import .Maths: ∑, nnodes
@@ -66,6 +65,9 @@ module Beziers
     function ⊗(b1::Bezier, b2::Bezier)::Bezier
         nodes = b1.nodes ⊗ b2.nodes
         n, m = nnodes(nodes)
+
+        @info(⊗, size(b1.nodes), size(b2.nodes), size(nodes),)
+
         coordinates = b1.coordinates ⊗ b2.coordinates
 
         return Bezier(nodes, coordinates, (n, m), b1.d, b1.N+b2.N)
