@@ -1,9 +1,8 @@
 
 module Maths
     using EllipsisNotation
-    using Einsum
 
-    export ∑, ⊗, ϕ!, dimensions
+    export ∑, ⊗, dimensions
 
     # shorthand for sum operation
     ∑(fn, values) = sum(fn, values)
@@ -22,45 +21,13 @@ module Maths
     to create two N x M... x P x Q... arrays which are then summed.
     """
     function ⊗(x::AbstractArray, y::AbstractArray)::AbstractArray
-        if ndims(x) == ndims(y) == 1
-            return x * y'
-        else
-            # compute product for each Euclidean dimension
-            n_x = ndims(x) - 1
-            n_y = ndims(y) - 1
-            dimsx = dimensions(x) 
-            dimsy = dimensions(y)
-
-            # initialize an array of the appropriate shape
-            N = zeros(3, dimsx..., dimsy...)
-            
-            # prepare conuts/indices for array repeats
-            counts_x = Int.([ones(n_x)... dimsy...])
-            counts_y = Int.([ones(n_y)... dimsx...])
-            dims_permutation = [collect(2:n_x+n_y)... 1]
-
-            # define two utility functions 
-            α(x) = repeat(x, counts_x...)
-            β(y) = permutedims(repeat(y, counts_y...), dims_permutation)
-
-            # @einsum N[d, ..] := α(x[d, ..]) .+ β(y[d, ..])
-            ϕ!(N, (d) -> α(x[d, ..]) .+ β(y[d, ..]))
-
-            return N
+        # initialize an array of the appropriate shape
+        N = zeros(3, dimensions(x) ..., dimensions(y)...)
+        
+        for Ix in CartesianIndices(x[1, ..]), Iy in CartesianIndices(y[1, ..])
+            N[:, Ix, Iy] = x[:, Ix] .+ y[:, Iy]
         end
-    end
-
-
-    """
-        ϕ!(X::AbstractArray, fn)
-
-    Apply a function `fn` along the first dimension of a given array `X`.
-    `fn` should accept only 1 argument, the index of the dimension slice.
-    """
-    function ϕ!(X, fn)
-        for d in 1:size(X, 1)
-            X[d, ..] .= fn(d)
-        end
+        return N
     end
 
 

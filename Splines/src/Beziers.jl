@@ -57,19 +57,16 @@ module Beziers
         return Bezier(nodes, coordinates, η, d, N)
     end
 
-    function Base.show(io::IO, b::Bezier)
-        print(io, "Bezier (nodes: $(b.η), N: $(b.N))")
-    end
+    """
+        b1 ⊗ b2
 
-
+    Tensor product of two beziers
+    """
     function ⊗(b1::Bezier, b2::Bezier)::Bezier
         nodes = b1.nodes ⊗ b2.nodes
         n, m = nnodes(nodes)
 
-        @info(⊗, size(b1.nodes), size(b2.nodes), size(nodes),)
-
         coordinates = b1.coordinates ⊗ b2.coordinates
-
         return Bezier(nodes, coordinates, (n, m), b1.d, b1.N+b2.N)
     end
 
