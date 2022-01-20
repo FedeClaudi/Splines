@@ -14,8 +14,8 @@ n, m = 8, 8
 
 # cupula
 N1 = [
-        cat([0:n-1 zeros(n) sin.(range(0, stop=π, length=n))], dims=2)',
-        cat([zeros(m) 0:m-1 sin.(range(0, stop=π, length=n))], dims=2)'
+        cat([0:n-1 zeros(n) 4 .* sin.(range(0, stop=π, length=n))], dims=2)',
+        cat([zeros(m) 0:m-1 4 .* sin.(range(0, stop=π, length=n))], dims=2)'
     ]
 
 
@@ -83,38 +83,3 @@ end
 
 display(fig)
 @info "Done"
-
-# b1 = Bezier(N1[1])
-# b2 = Bezier(N1[2])
-
-# bb = b1 ⊗ b2
-# display(
-#     plot([
-#         # plot_nodes(b1.nodes; name=nothing, color="red", knot_size=3),
-#         # plot_nodes(b2.nodes; name=nothing, color="blue", knot_size=3),
-#         scatter3d(
-#             x=b1.coordinates[1, :],
-#             y=b1.coordinates[2, :],
-#             z=b1.coordinates[3, :],
-#             mode="lines",            
-#             line=attr(width=30, color="red"),
-#             name=nothing,
-#         ),
-#         scatter3d(
-#             x=b2.coordinates[1, :],
-#             y=b2.coordinates[2, :],
-#             z=b2.coordinates[3, :],
-#             mode="lines",            
-#             line=attr(width=30, color="blue"),
-#             name=nothing,
-#         ),
-#         surface(
-#             x=bb.coordinates[1, :, :], 
-#             y=bb.coordinates[2, :, :], 
-#             z=bb.coordinates[3, :, :], 
-#             showscale=false, 
-#             name=nothing,
-#         ),
-#         plot_nodes(bb.coordinates; name=nothing, color="black", knot_size=1),
-#     ], 
-#     )

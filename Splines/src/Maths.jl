@@ -1,12 +1,12 @@
 
 module Maths
+
     using EllipsisNotation
 
-    export ∑, ⊗, dimensions
+    import ..Spline: AbstractBezier
 
-    # shorthand for sum operation
-    ∑(fn, values) = sum(fn, values)
-    
+    export ⊗, dimensions
+
 
     """
         ⊗(x::AbstractArray, y::AbstractArray)
@@ -21,15 +21,42 @@ module Maths
     to create two N x M... x P x Q... arrays which are then summed.
     """
     function ⊗(x::AbstractArray, y::AbstractArray)::AbstractArray
-        # initialize an array of the appropriate shape
-        N = zeros(3, dimensions(x) ..., dimensions(y)...)
-        
-        for Ix in CartesianIndices(x[1, ..]), Iy in CartesianIndices(y[1, ..])
-            N[:, Ix, Iy] = x[:, Ix] .+ y[:, Iy]
+        if ndims(x) == ndims(y) == 1
+            return x .* y'
+        else
+            # initialize an array of the appropriate shape
+            N = zeros(3, dimensions(x) ..., dimensions(y)...)
+            
+            for Ix in CartesianIndices(x[1, ..]), Iy in CartesianIndices(y[1, ..])
+                N[:, Ix, Iy] = x[:, Ix] .+ y[:, Iy]
+            end
         end
         return N
     end
 
+
+    """
+        ⊗(b1::AbstractBezier, b2::AbstractBezier)::AbstractBezier
+
+    Tensor product of two beziers
+    """
+    function ⊗(b1::T, b2::T) where T <: AbstractBezier
+        # get nodes
+        nodes = b1.nodes ⊗ b2.nodes
+        n, m = nnodes(nodes)
+
+        # get weights
+        weights = b1.weights ⊗ b2.weights
+        
+        # get coordinates
+        coordinates = b1.coordinates ⊗ b2.coordinates
+
+        # concatenate inner functions
+        β1 = b1.inner_fn == nothing ? [b1] : b1.inner_fn
+        β2 = b2.inner_fn == nothing ? [b2] : b2.inner_fn
+                
+        return T(nodes, coordinates, weights, (n, m), b1.d, b1.N+b2.N, hcat(β1, β2))
+    end
 
     # ------------------------------ Misc.utilities ------------------------------ #
 
