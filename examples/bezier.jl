@@ -25,15 +25,15 @@ b₃ = Bezier(nodes3)
 b2n = b₁ ⊗ b₂
 
 # create a Bezier volume!
-@info "N=3"
-b3n =  b2n ⊗ b₃
+# @info "N=3"
+# b3n =  b2n ⊗ b₃
 
 
-plots = []
-N = dimensions(b3n.coordinates)[end]
-for i in 1:N
-    push!(plots, plot_surface(b3n.coordinates[:, :, :, i]; with_points=false, opacity=1 - N/i))
-end
+# plots = []
+# N = dimensions(b3n.coordinates)[end]
+# for i in 1:N
+#     push!(plots, plot_surface(b3n.coordinates[:, :, :, i]; with_points=false, opacity=1 - N/i))
+# end
 
 @info "plots"
 display(
@@ -42,9 +42,9 @@ display(
         plot_curve(b₁.coordinates, color="red"),
         plot_nodes(nodes2, color="blue"),
         plot_curve(b₂.coordinates, color="blue"),
-        plot_curve(b₃.coordinates, color="green"),
-        plot_surface(b2n.coordinates, opacity=.8)[1],
-        plots...
+        # plot_curve(b₃.coordinates, color="green"),
+        plot_surface(b2n.coordinates, opacity=1)...,
+        # plots...
 ]))
 
 # display(plot(volume(

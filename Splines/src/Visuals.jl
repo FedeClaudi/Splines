@@ -10,7 +10,7 @@ module Visuals
         nodes::AbstractArray; 
         color::String="black",
         name="nodes",
-        knot_size::Number=8,
+        node_size::Number=8,
     )
         N = ndims(nodes)
         if size(nodes, 1) == 3
@@ -26,7 +26,7 @@ module Visuals
             mode="markers", 
             type=_type,     
             marker=attr(
-                    size=knot_size,
+                    size=node_size,
                     color=color,
                     opacity=1,
                 ), 

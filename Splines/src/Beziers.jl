@@ -30,8 +30,10 @@ module Beziers
         η  # shape of the nodes -1  | degree (linera, quadratic, cubic..)
         d::Int  # dimensionality of the Euclidean space
         N::Int  # spline dimensionality: 1 - curve, 2 - surface...
+        inner_fn  # a collection of lower dimensionality bezier curves
     end
     
+
     """
         Bezier(nodes; δt=0.05)
 
@@ -54,8 +56,33 @@ module Beziers
         B(i) = bernstein(τ; i=i, n=η)' .* nodes[:, i+1]
         coordinates = ∑(B, 0:η)
     
-        return Bezier(nodes, coordinates, η, d, N)
+        return Bezier(nodes, coordinates, η, d, N, nothing)
     end
+
+    """
+        bezier(t)
+
+    Turn an instance of `Bezier` into a callable.
+    Evaluates a bezier curve (N=1) at parameter value `t ∈ [0,1]`
+    """
+    function (bez::Bezier)(t)        
+        B(i) = bernstein(t; i=i, n=bez.η)' .* bez.nodes[:, i+1]
+        ∑(B, 0:bez.η)
+    end
+
+    """
+    Method for N>1 bezier surfaces. 
+    It evaluates each N=1 curve making the surface up at the corresponding parameter value.
+    """
+    function (bez::Bezier)(params...)        
+        if length(params) != bez.N
+            error("Number of parameters doesnt match the dimensionality of the Bezier curve")
+        end
+        
+
+        ∑((n)->bez.inner_fn[n](params[n]), 1:length(params))
+    end
+
 
     """
         b1 ⊗ b2
@@ -67,7 +94,12 @@ module Beziers
         n, m = nnodes(nodes)
 
         coordinates = b1.coordinates ⊗ b2.coordinates
-        return Bezier(nodes, coordinates, (n, m), b1.d, b1.N+b2.N)
+
+        # concatenate inner functions
+        β1 = b1.inner_fn == nothing ? [b1] : b1.inner_fn
+        β2 = b2.inner_fn == nothing ? [b2] : b2.inner_fn
+                
+        return Bezier(nodes, coordinates, (n, m), b1.d, b1.N+b2.N, hcat(β1, β2))
     end
 
 
