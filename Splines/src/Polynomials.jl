@@ -52,7 +52,7 @@ module Polynomials
     the knots are indexed starting from 0.
     """
     function N_D(τ; k::AbstractArray, i::Int=0, d::Int=0)
-        ω(τ, i+1, d, k) .* N(τ; k=k, i=i, d=d-1) .+ (1 .- ω(τ, i+1+1, d, k)) .* N(τ; k=k, i=i+1, d=d-1)
+        ω(τ, i+1, d, k) .* N_basis(τ; k=k, i=i, d=d-1) .+ (1 .- ω(τ, i+1+1, d, k)) .* N_basis(τ; k=k, i=i+1, d=d-1)
     end
 
     """
@@ -61,7 +61,7 @@ module Polynomials
     B-spline basis function for the i-th knot and d-th order.
     Calls either N_0 or N_D depending on the value of d.
     """
-    N(τ; k::AbstractArray, i::Int=0, d::Int=0) = (d == 0) ? N_0(τ; k, i=i) : N_D(τ; k, i=i, d=d)
+    N_basis(τ; k::AbstractArray, i::Int=0, d::Int=0) = (d == 0) ? N_0(τ; k, i=i) : N_D(τ; k, i=i, d=d)
 
 
     # ---------------------------------------------------------------------------- #

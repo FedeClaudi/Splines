@@ -2,7 +2,7 @@ module Visuals
 
     using PlotlyJS
 
-    import ..Maths: x, y, z
+    import ..Utils: x, y, z
 
     export plot_nodes, plot_curve, plot_surface
     

@@ -22,8 +22,8 @@ weights2[11] = -1
 
 # create two bezier curves
 @info "N=1"
-b₁ = RationalBezier(nodes1, weights1)
-b₂ = RationalBezier(nodes2, weights2)
+b₁ = Bezier(nodes1, weights1)
+b₂ = Bezier(nodes2, weights2)
 
 
 # create bezier surface
