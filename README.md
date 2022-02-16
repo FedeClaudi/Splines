@@ -1,7 +1,7 @@
 # Splines
 Spline interpolation in Julia
 
-One, two and N-dimensional spliens in Julia.
+One, two and N-dimensional splines in Julia.
 
 ![](colors.png)
 
